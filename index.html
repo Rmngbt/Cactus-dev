@@ -40,21 +40,26 @@
     <div id="scoreboard">
       <strong>Scores</strong>
       <div id="player-name">Moi</div>
+      <div id="scores-list"></div>
     </div>
 
-    <div id="player-hand"></div>
+    <h3>Ton jeu</h3>
+    <div id="player-hand" class="card-row"></div>
 
-    <div id="center-cards">
-      <div class="card orange">Pioche</div>
-      <div class="card orange">Défausse</div>
+    <div id="center-zone">
+      <div id="deck-card" class="card orange">Pioche</div>
+      <div id="discard-card" class="card orange">Défausse</div>
     </div>
 
-    <div id="bot-hand"></div>
+    <h3>Adversaire</h3>
+    <div id="bot-hand" class="card-row"></div>
 
-    <button id="btn-draw-card">Piocher une carte</button>
-    <button id="btn-discard-swap">Prendre de la défausse</button>
-    <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
-    <button id="btn-declare-cactus">Cactus</button>
+    <div class="controls">
+      <button id="btn-draw-card">Piocher une carte</button>
+      <button id="btn-discard-swap">Prendre de la défausse</button>
+      <button id="btn-declare-cactus">Cactus</button>
+      <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
+    </div>
 
     <p id="turn-info">Tour de joueur</p>
     <p id="drawn-card" style="display: none; cursor: pointer;">Carte piochée: <span id="new-card"></span></p>
