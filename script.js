@@ -71,6 +71,8 @@ function startNewGame() {
   jackSwapSelectedIndex = null;
   document.getElementById("skip-special").style.display = "none";
   currentPlayer = "Toi";
+  renderCards();
+  updateTurn();
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
   renderCards();
