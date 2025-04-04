@@ -98,6 +98,22 @@ button {
   box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
 
+.card.selectable-start {
+  border: 3px dashed #2ecc71;
+  cursor: pointer;
+}
+
+.card.highlight {
+  background-color: #f1c40f;
+  color: black;
+  font-weight: bold;
+}
+
+.card-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
 #center-zone, #central-piles {
   display: flex;
   justify-content: center;
