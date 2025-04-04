@@ -180,17 +180,21 @@ function renderCards() {
   playerCards.forEach((card, i) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
+
     const c = document.createElement("div");
     c.className = "card";
 
     if (selectingInitialCards) {
       c.classList.add("selectable-start");
       c.innerText = revealedIndexes.includes(i) ? card : "?";
-      if (revealedIndexes.includes(i)) c.classList.add("highlight");
+      if (revealedIndexes.includes(i)) {
+        c.classList.add("highlight");
+      }
       c.onclick = () => {
         if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
         revealedIndexes.push(i);
         renderCards();
+
         if (revealedIndexes.length === startVisibleCount) {
           log("👀 Cartes sélectionnées. Affichage temporaire...");
           setTimeout(() => {
@@ -202,11 +206,13 @@ function renderCards() {
       };
     } else {
       c.innerText = card;
+      c.onclick = () => handleCardClick(i, card);
     }
 
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
   });
+}
 
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
