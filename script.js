@@ -185,30 +185,40 @@ function renderCards() {
     c.className = "card";
 
     if (selectingInitialCards) {
+      // Pendant la phase de sélection, affiche "?" ou la carte si déjà révélée
       c.classList.add("selectable-start");
       c.innerText = revealedIndexes.includes(i) ? card : "?";
       if (revealedIndexes.includes(i)) {
         c.classList.add("highlight");
       }
       c.onclick = () => {
+        // Empêche de révéler plus de cartes que le nombre autorisé
         if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
         revealedIndexes.push(i);
         renderCards();
         if (revealedIndexes.length === startVisibleCount) {
           log("👀 Cartes sélectionnées. Affichage temporaire...");
           setTimeout(() => {
+            // Une fois la phase terminée, on vide revealedIndexes pour masquer les cartes
             selectingInitialCards = false;
+            revealedIndexes = [];
             renderCards();
             log("🕑 Cartes de nouveau cachées.");
           }, 5000);
         }
       };
     } else {
-      c.innerText = revealedIndexes.includes(i) ? card : "?";
-      if (revealedIndexes.includes(i)) {
-        c.classList.add("highlight");
-      }
+      // Hors de la phase mémoire, toutes les cartes restent cachées
+      c.innerText = "?";
+      // Permet l'interaction (échange, défausse, etc.)
       c.onclick = () => handleCardClick(i, card);
+      
+      // Ajoute le bouton de défausse pour ton jeu
+      const btn = document.createElement("button");
+      btn.innerText = "🗑";
+      btn.className = "discard-btn";
+      btn.onclick = () => discardCardFromHand(i);
+      wrap.appendChild(btn);
     }
 
     wrap.appendChild(c);
@@ -217,6 +227,8 @@ function renderCards() {
 
   renderBotCards();
 }
+
+
 
 function renderBotCards() {
   const botDiv = document.getElementById("bot-hand");
