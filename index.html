@@ -1,77 +1,85 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cactus Game</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cactus Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="welcome">
-        <h1>Bienvenue sur Cactus 🌵</h1>
-        <input type="text" id="username" placeholder="Entre ton pseudo">
-        <button id="btn-login">Connexion</button>
+  <div id="welcome">
+    <h1>Bienvenue sur Cactus 🌵</h1>
+    <input type="text" id="username" placeholder="Entre ton pseudo">
+    <button id="btn-login">Connexion</button>
+  </div>
+
+  <div id="config" style="display:none;">
+    <h2>Créer ou rejoindre une partie</h2>
+    <button id="btn-create-room">Créer une partie</button>
+    <input type="text" id="room-code" placeholder="Code de partie">
+    <button id="btn-join-room">Rejoindre une partie</button>
+  </div>
+
+  <div id="lobby" style="display:none;">
+    <h2>Salle d’attente</h2>
+    <p>Code de la partie : <strong id="lobby-room"></strong></p>
+    <div id="lobby-players">En attente de joueurs...</div>
+    <button id="btn-launch-setup" style="display:none;">Configurer la partie</button>
+  </div>
+
+  <div id="setup" style="display:none;">
+    <h2>Configuration de la partie</h2>
+    <label>Cartes par joueur : <input type="number" id="card-count" value="4" min="3" max="8"></label><br>
+    <label>Cartes visibles au début : <input type="number" id="visible-count" value="2" min="0" max="8"></label><br>
+    <label>Score cible : <input type="number" id="target-score" value="3" min="1" max="10"></label><br>
+    <button id="btn-save-config">Enregistrer config</button>
+    <button id="btn-start-game">Lancer la partie</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="scoreboard">
+      <strong>Scores</strong>
+      <div id="player-name">Moi</div>
+      <div id="scores-list"></div>
     </div>
 
-    <div id="config" style="display:none;">
-        <h2>Créer ou rejoindre une partie</h2>
-        <button id="btn-create-room">Créer une partie</button>
-        <input type="text" id="room-code" placeholder="Code de partie">
-        <button id="btn-join-room">Rejoindre une partie</button>
-    </div>
+    <div id="all-players">
+      <!-- Zone du jeu de l'adversaire -->
+      <div class="player-hand" id="bot-hand">
+        <h3>Adversaire</h3>
+      </div>
 
-    <div id="lobby" style="display:none;">
-        <h2>Salle d’attente</h2>
-        <p>Code de la partie : <strong id="lobby-room"></strong></p>
-        <div id="lobby-players">En attente de joueurs...</div>
-        <button id="btn-launch-setup" style="display:none;">Configurer la partie</button>
-    </div>
-
-    <div id="setup" style="display:none;">
-        <h2>Configuration de la partie</h2>
-        <label>Cartes par joueur : <input type="number" id="card-count" value="4" min="3" max="8"></label><br>
-        <label>Cartes visibles au début : <input type="number" id="visible-count" value="2" min="0" max="8"></label><br>
-        <label>Score cible : <input type="number" id="target-score" value="3" min="1" max="10"></label><br>
-        <button id="btn-save-config">Enregistrer config</button>
-        <button id="btn-start-game">Lancer la partie</button>
-    </div>
-
-    <div id="game" style="display:none;">
-        <div id="scoreboard">
-            <strong>Scores</strong>
-            <div id="player-name">Moi</div>
-            <div id="scores-list"></div>
+      <!-- Zone centrale pour la pioche et la défausse -->
+      <div id="central-piles">
+        <div class="card-wrapper">
+          <div id="draw-pile" class="card">?</div>
         </div>
-
-        <div id="all-players">
-            <div class="player-hand" id="bot-hand">
-                <h3>Adversaire</h3>
-            </div>
-            <div id="central-piles">
-                <div class="card-wrapper">
-                    <div id="draw-pile" class="card">?</div>
-                </div>
-                <div class="card-wrapper">
-                    <div id="discard-pile" class="card"><span id="discard">Vide</span></div>
-                </div>
-            </div>
-            <p id="drawn-card" style="display: none; cursor: pointer;">
-                Carte piochée: <span id="new-card"></span>
-            </p>
-            <div class="player-hand" id="player-hand">
-                <h3>Moi</h3>
-            </div>
+        <div class="card-wrapper">
+          <div id="discard-pile" class="card">
+            <span id="discard">Vide</span>
+          </div>
         </div>
+      </div>
 
-        <button id="btn-draw-card">Piocher une carte</button>
-        <button id="btn-discard-swap">Prendre de la défausse</button>
-        <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
-        <button id="btn-declare-cactus">Cactus</button>
-        <p id="turn-info">Tour du joueur</p>
+      <p id="drawn-card" style="display: none; cursor: pointer;">
+        Carte piochée: <span id="new-card"></span>
+      </p>
+
+      <!-- Zone du jeu du joueur -->
+      <div class="player-hand" id="player-hand">
+        <h3>Moi</h3>
+      </div>
     </div>
 
-    <div id="log"></div>
+    <button id="btn-draw-card">Piocher une carte</button>
+    <button id="btn-discard-swap">Prendre de la défausse</button>
+    <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
+    <button id="btn-declare-cactus">Cactus</button>
+    <p id="turn-info">Tour du joueur</p>
+  </div>
 
-    <script src="script.js"></script>
+  <div id="log"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
