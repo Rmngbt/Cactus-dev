@@ -180,7 +180,6 @@ function renderCards() {
   playerCards.forEach((card, i) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
-
     const c = document.createElement("div");
     c.className = "card";
 
@@ -194,7 +193,6 @@ function renderCards() {
         if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
         revealedIndexes.push(i);
         renderCards();
-
         if (revealedIndexes.length === startVisibleCount) {
           log("👀 Cartes sélectionnées. Affichage temporaire...");
           setTimeout(() => {
@@ -205,13 +203,18 @@ function renderCards() {
         }
       };
     } else {
-      c.innerText = card;
+      c.innerText = "?";
+      if (revealedIndexes.includes(i)) {
+        c.innerText = card;
+        c.classList.add("highlight");
+      }
       c.onclick = () => handleCardClick(i, card);
     }
 
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
   });
+}
 }
 
     wrap.appendChild(c);
