@@ -77,6 +77,7 @@ function startNewGame() {
 
 
 function drawCard() {
+  if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
   if (currentPlayer !== "Toi") return log("⛔ Ce n'est pas ton tour !");
   drawnCard = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
   log(`🃏 Carte piochée : ${drawnCard}`);
@@ -285,6 +286,7 @@ function discardOpponentCard(index) {
 }
 
 function handleCardClick(index, card) {
+  if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
   if (specialAction === "revealSelf") {
     if (!revealedIndexes.includes(index)) {
       revealedIndexes.push(index);
