@@ -203,9 +203,8 @@ function renderCards() {
         }
       };
     } else {
-      c.innerText = "?";
+      c.innerText = revealedIndexes.includes(i) ? card : "?";
       if (revealedIndexes.includes(i)) {
-        c.innerText = card;
         c.classList.add("highlight");
       }
       c.onclick = () => handleCardClick(i, card);
@@ -215,12 +214,7 @@ function renderCards() {
     handDiv.appendChild(wrap);
   });
 }
-}
 
-    wrap.appendChild(c);
-    handDiv.appendChild(wrap);
-  });
-}
 
 function attemptBotCardPlay(index, botCard) {
   const topDiscard = discardPile[discardPile.length - 1];
