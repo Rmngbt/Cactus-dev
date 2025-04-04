@@ -102,12 +102,11 @@ function discardDrawnCard() {
   discardPile.push(drawnCard);
   log(`🗑 Carte piochée défaussée : ${drawnCard}`);
   checkSpecialEffect(drawnCard);
-  if (!specialAction) endPlayerTurn();
+  if (!specialAction) if (!specialAction) endPlayerTurn();
   drawnCard = null;
   document.getElementById("drawn-card").style.display = "none";
   document.getElementById("discard-drawn")?.remove();
   renderCards();
-  endPlayerTurn();
   drawnCard = null;
   document.getElementById("drawn-card").style.display = "none";
   document.getElementById("discard-drawn")?.remove();
@@ -127,7 +126,6 @@ function attemptCardSwap(index) {
   document.getElementById("drawn-card").style.display = "none";
   document.getElementById("discard-drawn")?.remove();
   renderCards();
-  endPlayerTurn();
 }
 
 function discardCardFromHand(index) {
@@ -165,7 +163,6 @@ function discardCardFromHand(index) {
   checkSpecialEffect(card);
   if (!specialAction) endPlayerTurn();
   renderCards();
-  endPlayerTurn();
 }
 
 function initiateDiscardSwap() {
