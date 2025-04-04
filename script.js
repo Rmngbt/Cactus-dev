@@ -58,7 +58,6 @@ function saveGameConfig() {
 
 
 
-
 function startNewGame() {
   document.getElementById("setup").style.display = "none";
   document.getElementById("game").style.display = "block";
@@ -71,21 +70,10 @@ function startNewGame() {
   jackSwapSelectedIndex = null;
   document.getElementById("skip-special").style.display = "none";
   currentPlayer = "Toi";
-  renderCards();
-  updateTurn();
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
-  renderCards();
-  updateTurn();
-  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
-  currentPlayer = "Toi";
-  updateTurn();
-  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
-  currentPlayer = "Toi";
   updateTurn();
 }
-
-
 
 
 function drawCard() {
