@@ -73,6 +73,7 @@ function startNewGame() {
   currentPlayer = "Toi";
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
+  renderCards();
   updateTurn();
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   currentPlayer = "Toi";
