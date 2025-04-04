@@ -5,7 +5,6 @@ let targetScore = 3;
 let specialAction = null;
 let jackSwapSelectedIndex = null;
 let startVisibleCount = 2, cardCount = 4, currentPlayer = "Toi", revealedIndexes = [];
-let selectingInitialCards = false;
 
 const CARD_POOL = ["R", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "V", "D"];
 const log = (msg) => {
@@ -181,6 +180,7 @@ function renderCards() {
   playerCards.forEach((card, i) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
+
     const c = document.createElement("div");
     c.className = "card";
 
@@ -194,6 +194,7 @@ function renderCards() {
         if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
         revealedIndexes.push(i);
         renderCards();
+
         if (revealedIndexes.length === startVisibleCount) {
           log("👀 Cartes sélectionnées. Affichage temporaire...");
           setTimeout(() => {
@@ -204,65 +205,19 @@ function renderCards() {
         }
       };
     } else {
-      c.innerText = revealedIndexes.includes(i) ? card : "?";
-      if (revealedIndexes.includes(i)) {
-        c.classList.add("highlight");
-      }
+      c.innerText = card;
       c.onclick = () => handleCardClick(i, card);
     }
 
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
   });
-
-  renderBotCards();
 }
-
-function renderBotCards() {
-  const botDiv = document.getElementById("bot-hand");
-  botDiv.innerHTML = "<h3>Adversaire</h3>";
-
-  botCards.forEach((card, i) => {
-    const wrap = document.createElement("div");
-    wrap.className = "card-wrapper";
-
-    const c = document.createElement("div");
-    c.className = "card";
-    c.innerText = "?";
-
-    if (specialAction === "lookOpp") {
-      c.onclick = () => {
-        log(`👁️ Carte du bot en position ${i+1} : ${card}`);
-        specialAction = null;
-        document.getElementById("skip-special").style.display = "none";
-        renderCards();
-        endPlayerTurn();
-      };
-    } else if (specialAction === "swapJack" && jackSwapSelectedIndex !== null) {
-      c.onclick = () => {
-        const temp = botCards[i];
-        botCards[i] = playerCards[jackSwapSelectedIndex];
-        playerCards[jackSwapSelectedIndex] = temp;
-        log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex+1} avec celle du bot.`);
-        specialAction = null;
-        jackSwapSelectedIndex = null;
-        document.getElementById("skip-special").style.display = "none";
-        renderCards();
-        endPlayerTurn();
-      };
-    } else {
-      const btn = document.createElement("button");
-      btn.innerText = "🗑";
-      btn.className = "discard-btn";
-      btn.onclick = () => discardOpponentCard(i);
-      wrap.appendChild(btn);
-    }
 
     wrap.appendChild(c);
-    botDiv.appendChild(wrap);
+    handDiv.appendChild(wrap);
   });
 }
-
 
 function attemptBotCardPlay(index, botCard) {
   const topDiscard = discardPile[discardPile.length - 1];
