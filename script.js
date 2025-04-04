@@ -70,7 +70,10 @@ function startNewGame() {
   specialAction = null;
   jackSwapSelectedIndex = null;
   document.getElementById("skip-special").style.display = "none";
+  currentPlayer = "Toi";
+  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
+  updateTurn();
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   currentPlayer = "Toi";
   updateTurn();
