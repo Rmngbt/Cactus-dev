@@ -203,7 +203,10 @@ function renderCards() {
     } else {
       c.innerText = card;
     }
-    }
+
+    wrap.appendChild(c);
+    handDiv.appendChild(wrap);
+  });
 
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
