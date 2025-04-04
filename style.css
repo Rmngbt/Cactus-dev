@@ -1,5 +1,4 @@
 /* style.css (fusionné avec version précédente) */
-
 body {
   font-family: 'Comic Sans MS', cursive, sans-serif;
   margin: 0;
@@ -77,7 +76,6 @@ button {
   justify-content: center;
   flex-wrap: wrap;
   margin: 10px 0;
-  gap: 10px;
 }
 
 .player-hand h3 {
@@ -99,24 +97,8 @@ button {
   box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
 
-.card.selectable-start {
-  border: 3px dashed #2ecc71;
-  cursor: pointer;
-}
-
-.card.highlight {
-  background-color: #f1c40f;
-  color: black;
-  font-weight: bold;
-}
-
-.card-wrapper {
-  display: inline-block;
-  position: relative;
-  margin: 0 5px;
-}
-
-#center-zone, #central-piles {
+#center-zone,
+#central-piles {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -125,7 +107,8 @@ button {
   flex-wrap: wrap;
 }
 
-#center-zone .card, #central-piles .card {
+#center-zone .card,
+#central-piles .card {
   width: 80px;
   height: 120px;
   background: #d2691e;
@@ -162,4 +145,35 @@ button {
   margin-top: 10px;
   font-size: 16px;
   color: #333;
+}
+
+/* Additional styles for cards and buttons */
+.card-wrapper {
+  display: inline-block;
+  margin: 10px;
+  position: relative;
+}
+
+.card.selectable-start {
+  outline: 3px dashed yellow;
+}
+
+.card.highlight {
+  outline: 3px solid lime;
+  box-shadow: 0 0 10px lime;
+}
+
+.discard-btn {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: crimson;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
