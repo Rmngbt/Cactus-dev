@@ -185,12 +185,8 @@ function renderCards() {
 
     if (selectingInitialCards) {
       c.classList.add("selectable-start");
-      if (revealedIndexes.includes(i)) {
-        c.innerText = card;
-        c.classList.add("highlight");
-      } else {
-        c.innerText = "?";
-      }
+      c.innerText = revealedIndexes.includes(i) ? card : "?";
+      if (revealedIndexes.includes(i)) c.classList.add("highlight");
       c.onclick = () => {
         if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
         revealedIndexes.push(i);
@@ -206,6 +202,7 @@ function renderCards() {
       };
     } else {
       c.innerText = card;
+    }
     }
 
     wrap.appendChild(c);
