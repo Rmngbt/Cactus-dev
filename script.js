@@ -5,6 +5,7 @@ let targetScore = 3;
 let specialAction = null;
 let jackSwapSelectedIndex = null;
 let startVisibleCount = 2, cardCount = 4, currentPlayer = "Toi", revealedIndexes = [];
+let revealedIndexes = [];
 let selectingInitialCards = false;
 
 const CARD_POOL = ["R", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "V", "D"];
