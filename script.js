@@ -176,101 +176,44 @@ function initiateDiscardSwap() {
 }
 
 function renderCards() {
-  const playerHandDiv = document.getElementById("player-hand");
-  playerHandDiv.innerHTML = `<h3>${sessionStorage.getItem("username") || "Moi"}</h3>`;
+  const handDiv = document.getElementById("player-hand");
+  handDiv.innerHTML = "<h3>Ton jeu</h3>";
+
   playerCards.forEach((card, i) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
     const c = document.createElement("div");
     c.className = "card";
-    c.innerText = revealedIndexes.includes(i) ? card : "?";
 
     if (selectingInitialCards) {
       c.classList.add("selectable-start");
-      if (revealedIndexes.includes(i)) c.classList.add("highlight");
+      if (revealedIndexes.includes(i)) {
+        c.innerText = card;
+        c.classList.add("highlight");
+      } else {
+        c.innerText = "?";
+      }
       c.onclick = () => {
-        if (!revealedIndexes.includes(i)) {
-          if (revealedIndexes.length < startVisibleCount) {
-            revealedIndexes.push(i);
+        if (revealedIndexes.length >= startVisibleCount || revealedIndexes.includes(i)) return;
+        revealedIndexes.push(i);
+        renderCards();
+        if (revealedIndexes.length === startVisibleCount) {
+          log("👀 Cartes sélectionnées. Affichage temporaire...");
+          setTimeout(() => {
+            selectingInitialCards = false;
             renderCards();
-            if (revealedIndexes.length === startVisibleCount) {
-              log("👀 Cartes sélectionnées. Affichage temporaire...");
-              setTimeout(() => {
-                revealedIndexes = [];
-                selectingInitialCards = false;
-                renderCards();
-                log("🕑 Cartes de nouveau cachées.");
-              }, 5000);
-            }
-          }
+            log("🕑 Cartes de nouveau cachées.");
+          }, 5000);
         }
       };
     } else {
-      c.onclick = () => handleCardClick(i, card);
+      c.innerText = card;
     }
 
-    const trashBtn = document.createElement("button");
-    trashBtn.innerText = "🗑️";
-    trashBtn.className = "discard-btn";
-    trashBtn.onclick = () => discardCardFromHand(i);
-
-    wrap.appendChild(trashBtn);
-    const botTrashBtn = document.createElement("button");
-botTrashBtn.innerText = "🗑️";
-botTrashBtn.className = "discard-btn";
-botTrashBtn.onclick = () => discardOpponentCard(i);
-wrap.appendChild(botTrashBtn);
-wrap.appendChild(c);
-    playerHandDiv.appendChild(wrap);
-  });
-
-  const botHandDiv = document.getElementById("opponent-hand");
-  botHandDiv.innerHTML = "<h3>Bot</h3>";
-  botCards.forEach((card, i) => {
-    const wrap = document.createElement("div");
-    wrap.className = "card-wrapper";
-    const c = document.createElement("div");
-    c.className = "card";
-    c.innerText = "?";
-
-    if (specialAction === "lookOpp") {
-      c.onclick = () => {
-        c.innerText = card;
-        log(`👁️ Carte du bot en position ${i + 1} : ${card}`);
-        setTimeout(() => renderCards(), 2000);
-        specialAction = null;
-        document.getElementById("skip-special").style.display = "none";
-      };
-    }
-
-    if (specialAction === "swapJack" && jackSwapSelectedIndex !== null) {
-      c.classList.add("highlight-swap");
-      c.onclick = () => {
-        const tmp = playerCards[jackSwapSelectedIndex];
-        playerCards[jackSwapSelectedIndex] = botCards[i];
-        botCards[i] = tmp;
-        log(`🔄 Échange avec le bot (position ${i + 1}).`);
-        specialAction = null;
-        jackSwapSelectedIndex = null;
-        document.getElementById("skip-special").style.display = "none";
-        renderCards();
-      };
-    }
-
-    const botTrashBtn = document.createElement("button");
-    botTrashBtn.innerText = "🗑️";
-    botTrashBtn.className = "discard-btn";
-    botTrashBtn.onclick = () => discardOpponentCard(i);
-    wrap.appendChild(botTrashBtn);
     wrap.appendChild(c);
-    botHandDiv.appendChild(wrap);
+    handDiv.appendChild(wrap);
   });
-
-  const discardElem = document.getElementById("discard");
-  if (discardElem) discardElem.innerText = discardPile.length > 0 ? discardPile[discardPile.length - 1] : "Vide";
 }
-
-
 
 function attemptBotCardPlay(index, botCard) {
   const topDiscard = discardPile[discardPile.length - 1];
