@@ -230,7 +230,7 @@ function renderBotCards() {
 
         if (specialAction === "lookOpp") {
             c.onclick = () => {
-                log(`👁️ Carte du bot en position ${i+1} : ${card}`);
+                log(`👁️ Carte du bot en position ${i + 1} : ${card}`);
                 specialAction = null;
                 document.getElementById("skip-special").style.display = "none";
                 renderCards();
@@ -241,7 +241,7 @@ function renderBotCards() {
                 const temp = botCards[i];
                 botCards[i] = playerCards[jackSwapSelectedIndex];
                 playerCards[jackSwapSelectedIndex] = temp;
-                log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex+1} avec celle du bot.`);
+                log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex + 1} avec celle du bot.`);
                 specialAction = null;
                 jackSwapSelectedIndex = null;
                 document.getElementById("skip-special").style.display = "none";
@@ -367,7 +367,14 @@ function endPlayerTurn() {
 }
 
 function botPlayTurn() {
-    // Le bot pioche une carte
-    const card = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
-    let actionLog = `🤖 Bot pioche ${card}. `;
-    // Décision : garder
+    if (currentPlayer !== "Bot") return;
+    log("🤖 Tour du Bot...");
+
+    // Stratégie de base du Bot :
+    // 1. Si la défausse n'est pas vide, le Bot regarde la carte du dessus.
+    // 2. Le Bot pioche une carte.
+    // 3. Le Bot compare la carte piochée avec sa main et la défausse (pour l'instant, logique très simple).
+
+    const topDiscardedCard = discardPile[discardPile.length - 1];
+    if (topDiscardedCard) {
+        log(`🤖 Le Bot regarde la défausse :
