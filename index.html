@@ -43,14 +43,19 @@
       <div id="scores-list"></div>
     </div>
 
-    <div id="center-zone">
-      <div id="draw-pile" class="pile-card">Pioche</div>
-      <div id="discard-pile" class="pile-card">Défausse: <span id="discard">Vide</span></div>
-    </div>
-
     <div id="all-players">
-      <div id="player-hand"></div>
-      <div id="bot-hand"></div>
+      <div id="player-hand" class="player-hand">
+        <h3>Ton jeu</h3>
+      </div>
+
+      <div id="center-zone">
+        <div id="draw-pile" class="card">Pioche</div>
+        <div id="discard-pile" class="card">Défausse</div>
+      </div>
+
+      <div id="bot-hand" class="player-hand">
+        <h3>Adversaire</h3>
+      </div>
     </div>
 
     <button id="btn-draw-card">Piocher une carte</button>
