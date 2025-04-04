@@ -1,0 +1,147 @@
+/* style.css (fusionné avec version précédente) */
+
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5dc;
+  color: #333;
+  text-align: center;
+}
+
+#welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
+  color: white;
+  text-shadow: 1px 1px 4px black;
+}
+
+#welcome input,
+#welcome button {
+  margin: 10px;
+  padding: 12px 20px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+}
+
+#welcome button {
+  background-color: #32cd32;
+  color: white;
+  cursor: pointer;
+}
+
+#welcome button:hover {
+  background-color: #28a428;
+}
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  background: #6b8e23;
+  color: white;
+}
+
+#config,
+#lobby,
+#setup,
+#game {
+  margin-top: 30px;
+}
+
+#all-players {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.player-hand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.player-hand h3 {
+  margin-bottom: 10px;
+}
+
+.player-hand .card {
+  width: 80px;
+  height: 120px;
+  background: #4a90e2;
+  border-radius: 10px;
+  border: 2px solid white;
+  text-align: center;
+  line-height: 120px;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  margin: 5px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+#center-zone, #central-piles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+#center-zone .card, #central-piles .card {
+  width: 80px;
+  height: 120px;
+  background: #d2691e;
+  border-radius: 10px;
+  color: white;
+  font-size: 20px;
+  line-height: 120px;
+  font-weight: bold;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+#drawn-card {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #333;
+  background: #fff;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+#log {
+  border: 2px dashed black;
+  padding: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+  background: #fff;
+}
+
+#turn-info {
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}

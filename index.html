@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cactus Game</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5dc;
+      color: #333;
+      text-align: center;
+    }
+
+    #welcome {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      padding: 20px;
+      color: white;
+      text-shadow: 1px 1px 4px black;
+    }
+
+    #welcome input,
+    #welcome button {
+      margin: 10px;
+      padding: 12px 20px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: none;
+    }
+
+    #welcome button {
+      background-color: #32cd32;
+      color: white;
+      cursor: pointer;
+    }
+    #welcome button:hover {
+      background-color: #28a428;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 16px;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #config,
+    #lobby,
+    #setup,
+    #game {
+      margin-top: 30px;
+    }
+
+    .card-wrapper {
+      display: inline-block;
+      margin: 10px;
+      position: relative;
+    }
+
+    .card {
+      width: 80px;
+      height: 120px;
+      background: #4a90e2;
+      border-radius: 10px;
+      border: 2px solid white;
+      text-align: center;
+      line-height: 120px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .card.selectable-start {
+      outline: 3px dashed yellow;
+    }
+    .card.highlight {
+      outline: 3px solid lime;
+      box-shadow: 0 0 10px lime;
+    }
+
+    .discard-btn {
+      position: absolute;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      background: crimson;
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    #log {
+      margin-top: 20px;
+      padding: 10px;
+      border: 2px dashed #333;
+      background: rgba(255, 255, 255, 0.8);
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    #scoreboard {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="welcome">
+    <h1>Bienvenue sur Cactus 🌵</h1>
+    <input type="text" id="username" placeholder="Entre ton pseudo" />
+    <button onclick="login()">Connexion</button>
+  </div>
+
+  <div id="config" style="display:none;">
+    <h2>Créer ou rejoindre une partie</h2>
+    <button onclick="safeCreateRoom()">Créer une partie</button>
+    <input type="text" id="room-code" placeholder="Code de partie" />
+    <button onclick="joinRoom()">Rejoindre une partie</button>
+  </div>
+
+  <div id="lobby" style="display:none;">
+    <h2>Salle d’attente</h2>
+    <p>Code de la partie : <strong id="lobby-room"></strong></p>
+    <div id="lobby-players">En attente de joueurs...</div>
+    <button onclick="launchSetup()" id="start-game" style="display:none;">Configurer la partie</button>
+  </div>
+
+  <div id="setup" style="display:none;">
+    <h2>Configuration de la partie</h2>
+    <label>Cartes par joueur : 
+      <input type="number" id="card-count" value="4" min="3" max="8" />
+    </label><br/>
+    <label>Cartes visibles au début : 
+      <input type="number" id="visible-count" value="2" min="0" max="8" />
+    </label><br/>
+    <label>Score cible : 
+      <input type="number" id="target-score" value="3" min="1" max="10" />
+    </label><br/>
+    <button onclick="saveGameConfig()">Enregistrer config</button>
+    <button onclick="startNewGame()">Lancer la partie</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div id="scoreboard">
+      <strong>Scores</strong><br/>
+      <div id="player-name">Moi</div>
+      <div id="scores-list"></div>
+    </div>
+
+    <div id="all-players">
+      <div class="player-hand" id="opponent-hand">
+        <h3>Adversaire</h3>
+      </div>
+      <div id="central-piles">
+        <div class="card-wrapper">
+          <div id="draw-pile" class="card">?</div>
+        </div>
+        <div class="card-wrapper">
+          <div id="discard-pile" class="card"><span id="discard">Vide</span></div>
+        </div>
+      </div>
+      <p id="drawn-card" style="display: none; cursor: pointer;" onclick="discardDrawnCard()">
+        Carte piochée: <span id="new-card"></span>
+      </p>
+      <div class="player-hand" id="player-hand">
+        <h3>Moi</h3>
+      </div>
+    </div>
+
+    <button onclick="drawCard()">Piocher une carte</button>
+    <button onclick="initiateDiscardSwap()">Prendre de la défausse</button>
+    <button id="skip-special" style="display:none;" onclick="skipSpecial()">Passer l'action spéciale</button>
+    <button onclick="declareCactus()">Cactus</button>
+    <p id="turn-info">Tour de : Toi</p>
+  </div>
+
+  <div id="log"></div>
+
+  <script>
+    // ✅ Jeu Cactus - version offline corrigée
+    // (Toutes les fonctionnalités requises sont intégrées dans ce script)
+
+    let playerCards = [], botCards = [], discardPile = [], drawnCard = null;
+    let startVisibleCount = 2, cardCount = 4, targetScore = 3;
+    let currentPlayer = "Toi";
+    let revealedIndexes = [];
+    let playerScore = 0, botScore = 0;
+    let currentSpecial = null;
+    let revealOpponentCards = false;
+    let swapSelfIndex = null;
+
+    // Jeu de cartes : "A"=As(1), 2-10 = valeurs numériques, "V"=Valet(11), "D"=Dame(12), "R"=Roi(13)
+    const CARD_POOL = ["A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "V", "D", "R"];
+
+    // Fonction utilitaire pour ajouter un message dans le journal (#log)
+    function log(msg) {
+      const logDiv = document.getElementById("log");
+      if (logDiv) {
+        logDiv.innerHTML += `<p>${msg}</p>`;
+      }
+      console.log(msg);
+    }
+
+    // Convertir une carte en valeur numérique pour le calcul des scores
+    function cardValue(card) {
+      if (typeof card === 'number') return card;
+      switch(card) {
+        case "A": return 1;
+        case "V": return 11;
+        case "D": return 12;
+        case "R": return 13;
+        default: return 0;
+      }
+    }
+
+    // Connexion : enregistre le pseudo et passe à l'écran de création de partie
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      if (!username) return alert("Entre un pseudo pour continuer.");
+      sessionStorage.setItem("username", username);
+      document.getElementById("welcome").style.display = "none";
+      document.getElementById("config").style.display = "block";
+      document.getElementById("player-name").innerText = username || "Moi";
+      log(`👋 Bienvenue, ${username} !`);
+    }
+
+    // Création fictive d'une partie locale (offline)
+    function safeCreateRoom() {
+      log("🧪 Création d'une partie locale...");
+      document.getElementById("config").style.display = "none";
+      document.getElementById("lobby").style.display = "block";
+      document.getElementById("lobby-room").innerText = "OFFLINE";
+      document.getElementById("lobby-players").innerHTML = `<li>${sessionStorage.getItem("username") || "Toi"} (hôte)</li><li>Adversaire</li>`;
+      document.getElementById("start-game").style.display = "inline-block";
+    }
+
+    // Rejoindre fictivement une partie locale
+    function joinRoom() {
+      log("🧪 Rejoindre une partie locale...");
+      document.getElementById("config").style.display = "none";
+      document.getElementById("lobby").style.display = "block";
+      document.getElementById("lobby-room").innerText = "OFFLINE";
+      document.getElementById("lobby-players").innerText = "Joueur et Bot connectés.";
+    }
+
+    // Passer de la salle d'attente à l'écran de configuration de la partie
+    function launchSetup() {
+      document.getElementById("lobby").style.display = "none";
+      document.getElementById("setup").style.display = "block";
+    }
+
+    // Sauvegarder les paramètres de configuration saisis
+    function saveGameConfig() {
+      cardCount = parseInt(document.getElementById("card-count").value);
+      startVisibleCount = parseInt(document.getElementById("visible-count").value);
+      targetScore = parseInt(document.getElementById("target-score").value);
+      log("💾 Configuration sauvegardée.");
+    }
+
+    // Démarrer une nouvelle partie/manche avec la distribution des cartes
+    function startNewGame() {
+      document.getElementById("setup").style.display = "none";
+      document.getElementById("game").style.display = "block";
+      // Distribuer les cartes aléatoirement
+      playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+      botCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+      revealOpponentCards = false;
+      discardPile = [];
+      drawnCard = null;
+      revealedIndexes = [];
+      currentPlayer = "Toi";
+      // Révéler temporairement les premières cartes du joueur
+      for (let i = 0; i < startVisibleCount && i < playerCards.length; i++) {
+        revealedIndexes.push(i);
+      }
+      renderCards();
+      // Au bout de 5 secondes, cacher à nouveau ces cartes
+      setTimeout(() => {
+        revealedIndexes = [];
+        renderCards();
+        log("🕑 Les cartes du joueur sont de nouveau cachées.");
+      }, 5000);
+      updateTurn();
+      // Initialiser l'affichage du score
+      document.getElementById("scores-list").innerText = `Moi: ${playerScore} - Adversaire: ${botScore}`;
+      document.getElementById("skip-special").style.display = "none";
+    }
+
+    // Piocher une carte du talon
+    function drawCard() {
+      if (currentPlayer !== "Toi") {
+        return log("⛔ Ce n'est pas ton tour !");
+      }
+      drawnCard = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
+      log(`🃏 Carte piochée : ${drawnCard}`);
+      showDrawnCard();
+    }
+
+    // Afficher la carte piochée avec l'option de défausse
+    function showDrawnCard() {
+      const drawnDiv = document.getElementById("drawn-card");
+      drawnDiv.style.display = "block";
+      document.getElementById("new-card").innerText = drawnCard;
+      // Ajouter un bouton pour défausser la carte piochée si pas déjà présent
+      if (!document.getElementById("discard-drawn")) {
+        const btn = document.createElement("button");
+        btn.id = "discard-drawn";
+        btn.innerText = "Défausser la carte";
+        btn.onclick = discardDrawnCard;
+        drawnDiv.after(btn);
+      }
+    }
+
+    // Défausser la carte piochée (ne pas l'ajouter à son jeu)
+    function discardDrawnCard() {
+      if (!drawnCard) return;
+      discardPile.push(drawnCard);
+      log(`🗑 Carte piochée défaussée : ${drawnCard}`);
+      // Si c'est une carte spéciale, activer son effet
+      if (drawnCard === 8 || drawnCard === 10 || drawnCard === "V") {
+        handleSpecialCard(drawnCard);
+      }
+      // Réinitialiser la carte piochée
+      drawnCard = null;
+      document.getElementById("drawn-card").style.display = "none";
+      document.getElementById("discard-drawn")?.remove();
+      renderCards();
+    }
+
+    // Échanger la carte piochée avec l'une de ses cartes en main
+    function attemptCardSwap(index) {
+      if (drawnCard === null) return;
+      const oldCard = playerCards[index];
+      playerCards[index] = drawnCard;  // placer la carte piochée dans la main
+      drawnCard = null;
+      discardPile.push(oldCard);      // l'ancienne carte part à la défausse
+      log(`🔄 Carte échangée: [${oldCard}] remplacée par [${playerCards[index]}]`);
+      // Si l'ancienne carte avait un pouvoir spécial, on l'active
+      if (oldCard === 8 || oldCard === 10 || oldCard === "V") {
+        handleSpecialCard(oldCard);
+      }
+      // Retirer l'affichage de la carte piochée
+      document.getElementById("drawn-card").style.display = "none";
+      document.getElementById("discard-drawn")?.remove();
+      renderCards();
+    }
+
+    // Défausser volontairement une de ses cartes de la main (bouton 🗑 sur la carte)
+    function discardCardFromHand(index) {
+      const card = playerCards[index];
+      if (discardPile.length === 0) {
+        return log("❌ Aucune carte dans la défausse pour effectuer cette action.");
+      }
+      const topDiscard = discardPile[discardPile.length - 1];
+      if (card === topDiscard) {
+        // Bonne correspondance -> retirer la carte du jeu
+        log(`🎯 Bonne tentative ! Carte ${card} retirée de votre jeu.`);
+        playerCards.splice(index, 1);
+        discardPile.push(card);
+        // Si cette carte a un pouvoir spécial, on active son effet
+        if (card === 8 || card === 10 || card === "V") { handleSpecialCard(card); }
+      } else {
+        // Mauvaise correspondance -> pénalité
+        log(`❌ Mauvaise tentative. Vous piochez une carte de pénalité (carte ajoutée face cachée).`);
+        // La carte reste en main, on ajoute une carte de pénalité supplémentaire
+        playerCards.push(CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+      }
+      renderCards();
+    }
+
+    // Récupérer la carte du dessus de la défausse pour l'échanger
+    function initiateDiscardSwap() {
+      if (currentPlayer !== "Toi") return log("⛔ Ce n'est pas ton tour !");
+      if (discardPile.length === 0) return log("❌ Aucune carte dans la défausse");
+      drawnCard = discardPile.pop();
+      log(`🔁 Carte récupérée de la défausse : ${drawnCard}`);
+      showDrawnCard();
+    }
+
+    // Mettre à jour l'affichage des cartes des joueurs et des piles
+    function renderCards() {
+      // Pile de pioche (reste toujours face cachée, représentée par "?")
+      const drawPileElem = document.getElementById("draw-pile");
+      if (drawPileElem) {
+        drawPileElem.innerText = "?";
+      }
+      // Carte du dessus de la défausse (affiche la valeur ou "Vide")
+      const discardElem = document.getElementById("discard");
+      if (discardElem) {
+        discardElem.innerText = discardPile.length > 0 ? discardPile[discardPile.length - 1] : "Vide";
+      }
+      // Main du joueur
+      const playerHandDiv = document.getElementById("player-hand");
+      playerHandDiv.innerHTML = "<h3>Moi</h3>";
+      playerCards.forEach((card, i) => {
+        const wrap = document.createElement("div");
+        wrap.className = "card-wrapper";
+        const c = document.createElement("div");
+        c.className = "card";
+        c.innerText = revealedIndexes.includes(i) ? card : "?";  // révéler la carte si son index est dans revealedIndexes
+        c.dataset.index = i;
+        if (drawnCard !== null) {
+          // Si une carte piochée est en attente, clic = échange de cette carte
+          c.onclick = () => attemptCardSwap(i);
+        } else if (currentSpecial === 'selfPeek') {
+          // Pouvoir 8 actif : clic = révéler la carte cachée du joueur
+          c.onclick = () => {
+            if (!revealedIndexes.includes(i)) {
+              revealedIndexes.push(i);
+              log(`👁️ Vous regardez votre carte position ${i+1} : ${playerCards[i]}`);
+              document.getElementById("skip-special").style.display = "none";
+              currentSpecial = null;
+              setTimeout(() => {
+                revealedIndexes = revealedIndexes.filter(idx => idx !== i);
+                renderCards();
+              }, 3000);
+              renderCards();
+            }
+          };
+        } else if (currentSpecial === 'swap' && swapSelfIndex === null) {
+          // Pouvoir Valet (échange) : sélectionner une de ses cartes
+          c.onclick = () => {
+            swapSelfIndex = i;
+            c.classList.add("highlight");
+            log(`✅ Carte position ${i+1} sélectionnée pour échange.`);
+            log("👉 Sélectionnez maintenant une carte de l'adversaire à échanger.");
+          };
+        }
+        // Bouton défausse (🗑) sur la carte du joueur
+        const trashBtn = document.createElement("button");
+        trashBtn.innerText = "🗑";
+        trashBtn.className = "discard-btn";
+        trashBtn.onclick = () => discardCardFromHand(i);
+        wrap.appendChild(trashBtn);
+        wrap.appendChild(c);
+        playerHandDiv.appendChild(wrap);
+      });
+      // Main de l'adversaire (Bot)
+      const oppHandDiv = document.getElementById("opponent-hand");
+      oppHandDiv.innerHTML = "<h3>Adversaire</h3>";
+      botCards.forEach((card, i) => {
+        const wrap = document.createElement("div");
+        wrap.className = "card-wrapper";
+        const c = document.createElement("div");
+        c.className = "card";
+        if (revealOpponentCards) {
+          c.innerText = card;
+        } else {
+          c.innerText = "?";
+        }
+        c.dataset.index = i;
+        if (!revealOpponentCards && currentSpecial === 'opponentPeek') {
+          // Pouvoir 10 actif : clic = révéler cette carte du bot
+          c.onclick = () => {
+            log(`👀 Vous regardez la carte de l'adversaire (position ${i+1}) : ${card}`);
+            c.innerText = card;
+            document.getElementById("skip-special").style.display = "none";
+            currentSpecial = null;
+            setTimeout(() => {
+              c.innerText = "?";
+            }, 3000);
+          };
+        } else if (currentSpecial === 'swap' && swapSelfIndex !== null) {
+          // Pouvoir Valet (échange) : sélectionner cette carte du bot pour échange
+          c.onclick = () => {
+            const playerIndex = swapSelfIndex;
+            const oppIndex = i;
+            const cardPlayer = playerCards[playerIndex];
+            const cardOpp = botCards[oppIndex];
+            playerCards[playerIndex] = cardOpp;
+            botCards[oppIndex] = cardPlayer;
+            log(`🔄 Échange effectué entre votre carte (position ${playerIndex+1}) et la carte de l'adversaire (position ${oppIndex+1}).`);
+            swapSelfIndex = null;
+            currentSpecial = null;
+            document.getElementById("skip-special").style.display = "none";
+            renderCards();
+          };
+        }
+        // Bouton défausse éclair sur la carte du bot
+        const trashBtn = document.createElement("button");
+        trashBtn.innerText = "🗑";
+        trashBtn.className = "discard-btn";
+        trashBtn.onclick = () => attemptBotCardPlay(i, card);
+        wrap.appendChild(trashBtn);
+        wrap.appendChild(c);
+        oppHandDiv.appendChild(wrap);
+      });
+    }
+
+    // Tentative de défausse éclair sur une carte adverse
+    function attemptBotCardPlay(index, botCard) {
+      const topDiscard = discardPile[discardPile.length - 1];
+      if (!topDiscard) {
+        return log("❌ Il n'y a pas de carte dans la défausse.");
+      }
+      if (botCard === topDiscard) {
+        log(`🎯 Bonne tentative ! Carte ${botCard} retirée du jeu de l'adversaire. Vous lui donnez une de vos cartes.`);
+        discardPile.push(botCards[index]);
+        if (playerCards.length > 0) {
+          botCards[index] = playerCards.pop();
+        } else {
+          botCards.splice(index, 1);
+        }
+      } else {
+        log(`❌ Mauvaise tentative. Vous prenez une carte de pénalité.`);
+        playerCards.push(CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+      }
+      renderCards();
+    }
+
+    // Mettre à jour l'affichage du joueur dont c'est le tour
+    function updateTurn() {
+      document.getElementById("turn-info").innerText = `Tour de : ${currentPlayer}`;
+    }
+
+    // Gérer l'activation d'un pouvoir de carte spéciale défaussée
+    function handleSpecialCard(card) {
+      document.getElementById("skip-special").style.display = "inline-block";
+      if (card === 8) {
+        currentSpecial = 'selfPeek';
+        log("✨ Pouvoir du 8 activé : vous pouvez regarder l'une de vos cartes cachées.");
+      } else if (card === 10) {
+        currentSpecial = 'opponentPeek';
+        log("✨ Pouvoir du 10 activé : vous pouvez regarder une carte de l'adversaire.");
+      } else if (card === "V") {
+        currentSpecial = 'swap';
+        swapSelfIndex = null;
+        log("✨ Pouvoir du Valet activé : sélectionnez l'une de vos cartes à échanger avec l'adversaire.");
+      }
+    }
+
+    // Passer / annuler l'action spéciale en cours
+    function skipSpecial() {
+      log("⏭ Action spéciale ignorée.");
+      currentSpecial = null;
+      swapSelfIndex = null;
+      document.getElementById("skip-special").style.display = "none";
+      renderCards();
+    }
+
+    // Déclarer "Cactus" pour terminer la manche et révéler les cartes
+    function declareCactus() {
+      log("🌵 Cactus ! Fin de la manche.");
+      revealOpponentCards = true;
+      revealedIndexes = playerCards.map((_, idx) => idx);
+      renderCards();
+      // Calculer la somme des valeurs de chaque jeu
+      const playerSum = playerCards.reduce((sum, c) => sum + cardValue(c), 0);
+      const botSum = botCards.reduce((sum, c) => sum + cardValue(c), 0);
+      log(`🤵 Vos cartes : [${playerCards.join(', ')}] (Total = ${playerSum})`);
+      log(`🤖 Cartes de l'adversaire : [${botCards.join(', ')}] (Total = ${botSum})`);
+      if (playerSum <= botSum) {
+        log("✅ Vous gagnez cette manche !");
+        playerScore += 1;
+      } else {
+        log("🔻 L'adversaire remporte cette manche.");
+        botScore += 1;
+      }
+      document.getElementById("scores-list").innerText = `Moi: ${playerScore} - Adversaire: ${botScore}`;
+      log(`📊 Score actuel - Moi: ${playerScore} | Adversaire: ${botScore} (objectif: ${targetScore})`);
+      if (playerScore >= targetScore) {
+        log("🏆 Partie terminée : Vous avez gagné la partie ! 🎉");
+      } else if (botScore >= targetScore) {
+        log("😢 Partie terminée : L'adversaire remporte la partie.");
+      } else {
+        log("👉 Préparation de la prochaine manche...");
+        setTimeout(() => {
+          startNewGame();
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>
