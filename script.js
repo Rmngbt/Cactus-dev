@@ -214,6 +214,53 @@ function renderCards() {
     wrap.appendChild(c);
     handDiv.appendChild(wrap);
   });
+
+  renderBotCards();
+}
+
+function renderBotCards() {
+  const botDiv = document.getElementById("bot-hand");
+  botDiv.innerHTML = "<h3>Adversaire</h3>";
+
+  botCards.forEach((card, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "card-wrapper";
+
+    const c = document.createElement("div");
+    c.className = "card";
+    c.innerText = "?";
+
+    if (specialAction === "lookOpp") {
+      c.onclick = () => {
+        log(`👁️ Carte du bot en position ${i+1} : ${card}`);
+        specialAction = null;
+        document.getElementById("skip-special").style.display = "none";
+        renderCards();
+        endPlayerTurn();
+      };
+    } else if (specialAction === "swapJack" && jackSwapSelectedIndex !== null) {
+      c.onclick = () => {
+        const temp = botCards[i];
+        botCards[i] = playerCards[jackSwapSelectedIndex];
+        playerCards[jackSwapSelectedIndex] = temp;
+        log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex+1} avec celle du bot.`);
+        specialAction = null;
+        jackSwapSelectedIndex = null;
+        document.getElementById("skip-special").style.display = "none";
+        renderCards();
+        endPlayerTurn();
+      };
+    } else {
+      const btn = document.createElement("button");
+      btn.innerText = "🗑";
+      btn.className = "discard-btn";
+      btn.onclick = () => discardOpponentCard(i);
+      wrap.appendChild(btn);
+    }
+
+    wrap.appendChild(c);
+    botDiv.appendChild(wrap);
+  });
 }
 
 
