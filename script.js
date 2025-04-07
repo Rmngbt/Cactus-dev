@@ -123,28 +123,26 @@ function attemptCardSwap(index) {
   renderCards();
 }
 
-/* --- Correction principale de la défausse rapide --- */
 function discardCardFromHand(index) {
   const card = playerCards[index];
   const topDiscard = discardPile[discardPile.length - 1];
-  const normalize = (val) => (typeof val === "number" ? val : isNaN(val) ? val : parseInt(val));
   
   if (drawnCard !== null) {
     return log("⏳ Vous devez d'abord jouer ou défausser la carte piochée.");
   }
   
-  // Rapid discard : si la carte cliquée est identique à la carte au sommet de la défausse
-  if (topDiscard && normalize(card) === normalize(topDiscard)) {
+  // Rapid discard : si la carte cliquée (convertie en chaîne) correspond au sommet de la défausse
+  if (topDiscard && String(card) === String(topDiscard)) {
     log(`Avant suppression, playerCards: ${playerCards.join(", ")}`);
     playerCards.splice(index, 1); // Supprime la carte de la main
     log(`Après suppression, playerCards: ${playerCards.join(", ")}`);
     discardPile.push(card);
-    log(`⚡ Vous défaussez rapidement votre carte ${card} qui correspond à la défausse !`);
+    log(`⚡ Rapid discard : Vous défaussez votre carte ${card} qui correspond à la défausse !`);
     checkSpecialEffect(card);
     renderCards();
     return;
   } else {
-    // Sinon, défausse volontaire (remplace la carte par une nouvelle aléatoire dans ta main)
+    // Sinon, défausse volontaire : on remplace la carte par une nouvelle aléatoire dans la main
     discardPile.push(card);
     playerCards[index] = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
     log(`🗑 Défausse volontaire de la carte ${card}`);
