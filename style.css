@@ -177,3 +177,57 @@ button {
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+/* --- Media Queries pour un affichage responsive --- */
+@media (max-width: 768px) {
+  /* Réduire la taille des cartes */
+  .player-hand .card,
+  #center-zone .card,
+  #central-piles .card {
+    width: 60px;
+    height: 90px;
+    font-size: 18px;
+    line-height: 90px;
+  }
+  /* Ajuster la taille des boutons et inputs */
+  #welcome input, #welcome button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+  button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  #log {
+    max-width: 90%;
+    margin: 10px auto;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Réduire encore la taille des cartes */
+  .player-hand .card,
+  #center-zone .card,
+  #central-piles .card {
+    width: 50px;
+    height: 75px;
+    font-size: 16px;
+    line-height: 75px;
+  }
+  /* Ajuster les marges et paddings */
+  #welcome {
+    padding: 10px;
+  }
+  #welcome input, #welcome button {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  #log {
+    max-width: 90%;
+    font-size: 10px;
+  }
+}
