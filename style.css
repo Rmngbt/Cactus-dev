@@ -1,4 +1,5 @@
-/* style.css (fusionné avec version précédente) */
+/* style.css (Responsive version) */
+
 body {
   font-family: 'Comic Sans MS', cursive, sans-serif;
   margin: 0;
@@ -8,6 +9,7 @@ body {
   text-align: center;
 }
 
+/* Page d'accueil */
 #welcome {
   display: flex;
   flex-direction: column;
@@ -42,6 +44,7 @@ body {
   background-color: #28a428;
 }
 
+/* Boutons généraux */
 button {
   font-family: inherit;
   font-size: 14px;
@@ -54,6 +57,7 @@ button {
   color: white;
 }
 
+/* Sections de configuration et jeu */
 #config,
 #lobby,
 #setup,
@@ -61,6 +65,7 @@ button {
   margin-top: 30px;
 }
 
+/* Zone de jeu */
 #all-players {
   display: flex;
   flex-direction: column;
@@ -94,9 +99,10 @@ button {
   font-weight: bold;
   color: white;
   margin: 5px;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* Zones centrales (pioche et défausse) */
 #center-zone,
 #central-piles {
   display: flex;
@@ -117,10 +123,11 @@ button {
   font-size: 20px;
   line-height: 120px;
   font-weight: bold;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
 
+/* Carte piochée */
 #drawn-card {
   font-weight: bold;
   margin-top: 10px;
@@ -129,9 +136,10 @@ button {
   display: inline-block;
   padding: 8px 16px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* Journal (log) */
 #log {
   border: 2px dashed black;
   padding: 10px;
@@ -140,6 +148,7 @@ button {
   background: #fff;
 }
 
+/* Information de tour */
 #turn-info {
   font-weight: bold;
   margin-top: 10px;
@@ -147,7 +156,7 @@ button {
   color: #333;
 }
 
-/* Additional styles for cards and buttons */
+/* Styles supplémentaires pour les cartes et boutons */
 .card-wrapper {
   display: inline-block;
   margin: 10px;
@@ -175,12 +184,13 @@ button {
   color: white;
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Media Queries pour un affichage responsive --- */
+/* --- Responsive Styles --- */
+
+/* Pour tablettes et écrans moyens */
 @media (max-width: 768px) {
-  /* Réduire la taille des cartes */
   .player-hand .card,
   #center-zone .card,
   #central-piles .card {
@@ -189,23 +199,25 @@ button {
     font-size: 18px;
     line-height: 90px;
   }
-  /* Ajuster la taille des boutons et inputs */
+  
   #welcome input, #welcome button {
     font-size: 16px;
     padding: 10px 16px;
   }
+  
   button {
     font-size: 12px;
     padding: 6px 10px;
   }
+  
   #log {
     max-width: 90%;
     margin: 10px auto;
   }
 }
 
+/* Pour mobiles */
 @media (max-width: 480px) {
-  /* Réduire encore la taille des cartes */
   .player-hand .card,
   #center-zone .card,
   #central-piles .card {
@@ -214,18 +226,21 @@ button {
     font-size: 16px;
     line-height: 75px;
   }
-  /* Ajuster les marges et paddings */
+  
   #welcome {
     padding: 10px;
   }
+  
   #welcome input, #welcome button {
     font-size: 14px;
     padding: 8px 12px;
   }
+  
   button {
     font-size: 12px;
     padding: 4px 8px;
   }
+  
   #log {
     max-width: 90%;
     font-size: 10px;
