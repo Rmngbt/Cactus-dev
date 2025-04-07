@@ -220,6 +220,60 @@ function renderCards() {
 }
 
 
+function renderBotCards() {
+  const botDiv = document.getElementById("bot-hand");
+  botDiv.innerHTML = "<h3>Adversaire</h3>";
+
+  botCards.forEach((card, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "card-wrapper";
+
+    const c = document.createElement("div");
+    c.className = "card";
+    c.innerText = "?";
+
+    if (specialAction === "lookOpp") {
+      c.onclick = () => {
+        log(`👁️ Carte du bot en position ${i + 1} : ${card}`);
+        // Afficher temporairement la valeur de la carte du bot
+        c.innerText = card;
+        c.classList.add("highlight");
+        document.getElementById("skip-special").style.display = "none";
+        // Désactiver les autres cartes pour éviter plusieurs révélations
+        document.querySelectorAll('#bot-hand .card').forEach(elem => elem.onclick = null);
+        setTimeout(() => {
+          c.innerText = "?";
+          c.classList.remove("highlight");
+          specialAction = null;
+          renderCards();
+          endPlayerTurn();
+        }, 3000);
+      };
+    } else if (specialAction === "swapJack" && jackSwapSelectedIndex !== null) {
+      c.onclick = () => {
+        const temp = botCards[i];
+        botCards[i] = playerCards[jackSwapSelectedIndex];
+        playerCards[jackSwapSelectedIndex] = temp;
+        log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex + 1} avec celle du bot.`);
+        specialAction = null;
+        jackSwapSelectedIndex = null;
+        document.getElementById("skip-special").style.display = "none";
+        renderCards();
+        endPlayerTurn();
+      };
+    } else {
+      const btn = document.createElement("button");
+      btn.innerText = "🗑";
+      btn.className = "discard-btn";
+      btn.onclick = () => discardOpponentCard(i);
+      wrap.appendChild(btn);
+    }
+
+    wrap.appendChild(c);
+    botDiv.appendChild(wrap);
+  });
+}
+
 function attemptBotCardPlay(index, botCard) {
   const topDiscard = discardPile[discardPile.length - 1];
   if (!topDiscard) return log("❌ Il n'y a pas de carte dans la défausse.");
