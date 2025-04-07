@@ -56,18 +56,25 @@ function saveGameConfig() {
   log(`💾 Config sauvegardée (Cartes: ${cardCount}, Visibles: ${startVisibleCount}, Cible: ${targetScore})`);
 }
 
-
-function joinRoom() {
-  log("🧪 Rejoint fictivement une partie...");
-  document.getElementById("config").style.display = "none";
-  document.getElementById("lobby").style.display = "block";
-  document.getElementById("lobby-room").innerText = "TEST123";
-  document.getElementById("lobby-players").innerHTML = "<li>Bot (hôte)</li><li>Toi</li>";
-  setTimeout(() => {
-    log("🚦 Le bot lance la configuration de la partie...");
-    launchSetup();
-  }, 2000);
+function startNewGame() {
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  botCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  discardPile = [];
+  revealedIndexes = [];
+  selectingInitialCards = true;
+  drawnCard = null;
+  specialAction = null;
+  jackSwapSelectedIndex = null;
+  document.getElementById("skip-special").style.display = "none";
+  currentPlayer = "Toi";
+  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
+  renderCards();
+  updateTurn();
 }
+
+
 
 
 
