@@ -9,17 +9,17 @@ body {
   text-align: center;
 }
 
-/* Page d'accueil */
+/* Page d'accueil – L'image de fond est chargée via CSS */
 #welcome {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100vh; /* Occupe toute la hauteur du viewport */
   background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-size: cover;         /* L'image couvre entièrement le conteneur */
+  background-position: center;    /* L'image est centrée */
+  background-repeat: no-repeat;   /* Pas de répétition */
   padding: 20px;
   color: white;
   text-shadow: 1px 1px 4px black;
@@ -57,7 +57,7 @@ button {
   color: white;
 }
 
-/* Sections de configuration et de jeu */
+/* Sections de configuration et jeu */
 #config,
 #lobby,
 #setup,
