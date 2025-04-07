@@ -131,27 +131,27 @@ function discardCardFromHand(index) {
 
   if (currentPlayer !== "Toi") {
     if (!topDiscard) return log("❌ Aucune carte dans la défausse.");
-
     if (normalize(card) === normalize(topDiscard)) {
+      log(`Avant suppression, playerCards: ${playerCards.join(", ")}`);
       playerCards.splice(index, 1);
+      log(`Après suppression, playerCards: ${playerCards.join(", ")}`);
       discardPile.push(card);
       log(`⚡ Vous défaussez rapidement votre carte ${card} qui correspond à la défausse !`);
       checkSpecialEffect(card);
-      renderCards();
-      return;
     } else {
       const penaltyCard = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
       playerCards.push(penaltyCard);
       log(`❌ Mauvaise tentative de défausse éclair. Vous piochez une carte de pénalité (${penaltyCard}).`);
-      renderCards();
-      return;
     }
+    renderCards();
+    return;
   }
-
+  
   if (drawnCard !== null) {
     return log("⏳ Vous devez d'abord jouer ou défausser la carte piochée.");
   }
-
+  
+  // Défausse volontaire (hors défausse rapide) :
   discardPile.push(card);
   playerCards[index] = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
   log(`🗑 Défausse volontaire de la carte ${card}`);
