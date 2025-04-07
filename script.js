@@ -1,10 +1,12 @@
 // ✅ script.js avec logique corrigée : affichage mémoire, clic limité, interactions actives
-
 let playerCards = [], botCards = [], discardPile = [], drawnCard = null;
 let targetScore = 3;
 let specialAction = null;
 let jackSwapSelectedIndex = null;
 let startVisibleCount = 2, cardCount = 4, currentPlayer = "Toi", revealedIndexes = [];
+let mustGiveCardAfterEffect = false;
+let pendingBotCardIndex = null;
+let playerPoints = 0, botPoints = 0;
 let selectingInitialCards = false;
 
 const CARD_POOL = ["R", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "V", "D"];
@@ -74,10 +76,6 @@ function startNewGame() {
   updateTurn();
 }
 
-
-
-
-
 function drawCard() {
   if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
   if (currentPlayer !== "Toi") return log("⛔ Ce n'est pas ton tour !");
@@ -104,16 +102,11 @@ function discardDrawnCard() {
   discardPile.push(drawnCard);
   log(`🗑 Carte piochée défaussée : ${drawnCard}`);
   checkSpecialEffect(drawnCard);
-  if (!specialAction) if (!specialAction) endPlayerTurn();
+  if (!specialAction) endPlayerTurn();
   drawnCard = null;
   document.getElementById("drawn-card").style.display = "none";
   document.getElementById("discard-drawn")?.remove();
   renderCards();
-  drawnCard = null;
-  document.getElementById("drawn-card").style.display = "none";
-  document.getElementById("discard-drawn")?.remove();
-  renderCards();
-  endPlayerTurn();
 }
 
 function attemptCardSwap(index) {
@@ -227,9 +220,7 @@ function renderCards() {
     const topDiscard = discardPile[discardPile.length - 1];
     discardSpan.innerText = topDiscard ?? "Vide";
   }
-}  
-
-
+}
 
 function renderBotCards() {
   const botDiv = document.getElementById("bot-hand");
@@ -246,10 +237,19 @@ function renderBotCards() {
     if (specialAction === "lookOpp") {
       c.onclick = () => {
         log(`👁️ Carte du bot en position ${i + 1} : ${card}`);
-        specialAction = null;
+        // Afficher temporairement la valeur de la carte du bot
+        c.innerText = card;
+        c.classList.add("highlight");
         document.getElementById("skip-special").style.display = "none";
-        renderCards();
-        endPlayerTurn();
+        // Désactiver les autres cartes pour éviter plusieurs révélations
+        document.querySelectorAll('#bot-hand .card').forEach(elem => elem.onclick = null);
+        setTimeout(() => {
+          c.innerText = "?";
+          c.classList.remove("highlight");
+          specialAction = null;
+          renderCards();
+          endPlayerTurn();
+        }, 3000);
       };
     } else if (specialAction === "swapJack" && jackSwapSelectedIndex !== null) {
       c.onclick = () => {
@@ -331,18 +331,27 @@ function discardOpponentCard(index) {
   if (normalize(card) === normalize(topDiscard)) {
     log(`🎯 Bonne défausse ! La carte ${card} correspond à la défausse.`);
     discardPile.push(card);
-    checkSpecialEffect(card); // et lui donner une de nos cartes (dernière)
-    if (playerCards.length > 0) {
-      botCards[index] = playerCards.pop();
+    // Retirer la carte de l'adversaire du jeu
+    botCards.splice(index, 1);
+    if (card === 8 || card === "8" || card === 10 || card === "10" || card === "V" || card === "J" || card === 11) {
+      mustGiveCardAfterEffect = true;
+      pendingBotCardIndex = index;
+      checkSpecialEffect(card);
     } else {
-      botCards[index] = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
+      specialAction = "give";
+      pendingBotCardIndex = index;
+      log("🎁 Choisissez une de vos cartes à donner au bot.");
+      document.getElementById("skip-special").style.display = "none";
+      renderCards();
     }
+    return;
   } else {
     const penalty = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
     playerCards.push(penalty);
     log(`❌ Mauvaise tentative. Vous piochez une pénalité (${penalty}).`);
+    renderCards();
+    return;
   }
-  renderCards();
 }
 
 function handleCardClick(index, card) {
@@ -350,17 +359,38 @@ function handleCardClick(index, card) {
   if (specialAction === "revealSelf") {
     if (!revealedIndexes.includes(index)) {
       revealedIndexes.push(index);
-      log(`👁️ Vous regardez votre carte : ${card}`);
     }
-    specialAction = null;
+    log(`👁️ Vous regardez votre carte : ${card}`);
+    // Afficher temporairement la valeur de votre carte
+    const cardElems = document.querySelectorAll('#player-hand .card');
+    const selectedCardElem = cardElems[index];
+    selectedCardElem.innerText = card;
+    selectedCardElem.classList.add('highlight');
     document.getElementById("skip-special").style.display = "none";
-    renderCards();
-    endPlayerTurn();
+    // Empêcher plusieurs révélations
+    specialAction = "waitingReveal";
+    setTimeout(() => {
+      selectedCardElem.innerText = "?";
+      selectedCardElem.classList.remove('highlight');
+      specialAction = null;
+      renderCards();
+      log("🕑 Carte de nouveau cachée.");
+      endPlayerTurn();
+    }, 3000);
   } else if (specialAction === "swapJack") {
     jackSwapSelectedIndex = index;
     log(`🃏 Carte sélectionnée pour échange avec le bot.`);
     document.querySelectorAll('.card').forEach(card => card.classList.remove('highlight-swap'));
     renderCards();
+  } else if (specialAction === "give") {
+    const giveCard = playerCards[index];
+    playerCards.splice(index, 1);
+    botCards.splice(pendingBotCardIndex, 0, giveCard);
+    log(`🎁 Vous donnez votre carte ${giveCard} au bot.`);
+    specialAction = null;
+    pendingBotCardIndex = null;
+    renderCards();
+    endPlayerTurn();
   } else if (drawnCard !== null) {
     attemptCardSwap(index);
   }
@@ -371,7 +401,14 @@ function updateTurn() {
 }
 
 function endPlayerTurn() {
-  // Ne passer au bot que si aucune action spéciale n'est en attente
+  if (mustGiveCardAfterEffect) {
+    mustGiveCardAfterEffect = false;
+    specialAction = "give";
+    log("🎁 Choisissez une de vos cartes à transférer au bot.");
+    document.getElementById("skip-special").style.display = "none";
+    renderCards();
+    return;
+  }
   if (specialAction) {
     return;
   }
@@ -492,18 +529,52 @@ function declareCactus() {
         log(`🤖 Le bot a aussi cactus avec un score de ${botScore}.`);
       }
 
+      // Mise à jour du score et de l'affichage
+      if (playerScore <= 5) playerPoints++;
+      else botPoints++;
+      const scoresList = document.getElementById("scores-list");
+      if (scoresList) {
+        scoresList.innerText = `${sessionStorage.getItem("username") || "Moi"}: ${playerPoints} - Bot: ${botPoints}`;
+      }
+      if (playerPoints >= targetScore || botPoints >= targetScore) {
+        if (playerPoints > botPoints) {
+          log("🏆 Vous remportez la partie !");
+        } else if (botPoints > playerPoints) {
+          log("🏆 Le bot remporte la partie !");
+        } else {
+          log("🤝 Égalité ! La partie se termine.");
+        }
+      } else {
+        // Préparer la prochaine manche
+        const nextBtn = document.getElementById("btn-next-round");
+        if (!nextBtn) {
+          const btn = document.createElement("button");
+          btn.id = "btn-next-round";
+          btn.innerText = "Nouvelle manche";
+          btn.addEventListener("click", () => {
+            btn.style.display = "none";
+            log("🔄 Nouvelle manche...");
+            startNewGame();
+          });
+          document.getElementById("game").appendChild(btn);
+        }
+        document.getElementById("btn-next-round").style.display = "inline-block";
+      }
     }, 1500);
   }, 1500);
 }
+
 window.addEventListener("DOMContentLoaded", () => {
   // Attacher les écouteurs d'événements aux boutons
   document.getElementById("btn-login")?.addEventListener("click", login);
   document.getElementById("btn-create-room")?.addEventListener("click", safeCreateRoom);
   document.getElementById("btn-join-room")?.addEventListener("click", joinRoom);
+
   document.getElementById("btn-launch-setup")?.addEventListener("click", launchSetup);
   document.getElementById("btn-save-config")?.addEventListener("click", saveGameConfig);
   document.getElementById("btn-start-game")?.addEventListener("click", startNewGame);
   document.getElementById("btn-draw-card")?.addEventListener("click", drawCard);
+
   document.getElementById("btn-discard-swap")?.addEventListener("click", initiateDiscardSwap);
   document.getElementById("btn-declare-cactus")?.addEventListener("click", declareCactus);
   document.getElementById("skip-special")?.addEventListener("click", skipSpecial);
