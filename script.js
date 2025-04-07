@@ -123,12 +123,12 @@ function attemptCardSwap(index) {
   renderCards();
 }
 
+
 function discardCardFromHand(index) {
   const card = playerCards[index];
   const topDiscard = discardPile[discardPile.length - 1];
   const normalize = (val) => (typeof val === "number" ? val : isNaN(val) ? val : parseInt(val));
 
-  // Cas 1 : défausse rapide (hors de ton tour)
   if (currentPlayer !== "Toi") {
     if (!topDiscard) return log("❌ Aucune carte dans la défausse.");
 
@@ -137,21 +137,21 @@ function discardCardFromHand(index) {
       discardPile.push(card);
       log(`⚡ Vous défaussez rapidement votre carte ${card} qui correspond à la défausse !`);
       checkSpecialEffect(card);
+      renderCards();
+      return;
     } else {
       const penaltyCard = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
       playerCards.push(penaltyCard);
       log(`❌ Mauvaise tentative de défausse éclair. Vous piochez une carte de pénalité (${penaltyCard}).`);
+      renderCards();
+      return;
     }
-    renderCards();
-    return;
   }
 
-  // Cas 2 : c'est ton tour
   if (drawnCard !== null) {
     return log("⏳ Vous devez d'abord jouer ou défausser la carte piochée.");
   }
 
-  // Défausse volontaire
   discardPile.push(card);
   playerCards[index] = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
   log(`🗑 Défausse volontaire de la carte ${card}`);
@@ -160,6 +160,7 @@ function discardCardFromHand(index) {
   renderCards();
 }
 
+
 function initiateDiscardSwap() {
   if (currentPlayer !== "Toi") return log("⛔ Ce n'est pas ton tour !");
   if (discardPile.length === 0) return log("❌ Aucune carte dans la défausse");
@@ -167,7 +168,7 @@ function initiateDiscardSwap() {
   log(`🔁 Carte récupérée de la défausse : ${drawnCard}`);
   showDrawnCard();
 }
-
+// ✅ Mise à jour de l'affichage de la défausse
 function renderCards() {
   const handDiv = document.getElementById("player-hand");
   handDiv.innerHTML = "<h3>Ton jeu</h3>";
@@ -214,13 +215,19 @@ function renderCards() {
 
   renderBotCards();
 
-  // ✅ Mise à jour de l'affichage de la défausse
   const discardSpan = document.getElementById("discard");
   if (discardSpan) {
     const topDiscard = discardPile[discardPile.length - 1];
     discardSpan.innerText = topDiscard ?? "Vide";
   }
+
+  // Mise à jour tableau score
+  const scoresList = document.getElementById("scores-list");
+  if (scoresList) {
+    scoresList.innerText = `${sessionStorage.getItem("username") || "Moi"}: ${playerPoints} - Bot: ${botPoints}`;
+  }
 }
+
 
 function renderBotCards() {
   const botDiv = document.getElementById("bot-hand");
