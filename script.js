@@ -620,7 +620,13 @@ function login() {
   // Passe à l'écran de sélection de partie
   document.getElementById("welcome").style.display = "none";
   document.getElementById("config").style.display = "block";
-  document.getElementById("player-name")?.innerText = username;
+  //document.getElementById("player-name")?.innerText = username;
+  
+  const playerNameElem = document.getElementById("player-name");
+if (playerNameElem) {
+  playerNameElem.innerText = username;
+}
+  
   logAction("👋 Bienvenue, " + username + " !");
 }
 
