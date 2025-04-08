@@ -1,12 +1,15 @@
+/* style.css (Responsive version avec ajustement du scoreboard et responsive) */
+
 body {
   font-family: 'Comic Sans MS', cursive, sans-serif;
-  text-align: center;
   margin: 0;
   padding: 0;
   background-color: #f5f5dc;
   color: #333;
+  text-align: center;
 }
-/* Welcome screen with background image */
+
+/* Écran d'accueil – image de fond chargée via CSS */
 #welcome {
   display: flex;
   flex-direction: column;
@@ -16,9 +19,12 @@ body {
   background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
   color: white;
   text-shadow: 1px 1px 4px black;
 }
+
 #welcome input,
 #welcome button {
   margin: 10px;
@@ -27,15 +33,18 @@ body {
   border-radius: 12px;
   border: none;
 }
+
 #welcome button {
   background-color: #32cd32;
   color: white;
   cursor: pointer;
 }
+
 #welcome button:hover {
   background-color: #28a428;
 }
-/* General buttons */
+
+/* Boutons généraux */
 button {
   font-family: inherit;
   font-size: 14px;
@@ -51,14 +60,16 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-/* Sections spacing */
+
+/* Sections de configuration et de jeu */
 #config,
 #lobby,
 #setup,
 #game {
   margin-top: 30px;
 }
-/* Scoreboard box (top-right corner) */
+
+/* Scoreboard – en haut à droite */
 #scoreboard {
   position: absolute;
   top: 10px;
@@ -71,29 +82,26 @@ button:disabled {
   font-size: 14px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-#scoreboard strong {
-  display: block;
-  margin-bottom: 5px;
-}
-#scoreboard .highlight {
-  font-weight: bold;
-}
-/* Round info text inside scoreboard */
 #scoreboard .round-info {
   margin-top: 8px;
   font-weight: bold;
 }
-/* Game area and player hands */
+
+/* Zone de jeu et zone des joueurs */
 #game-area {
-  margin-top: 20px;
+  margin-top: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .player-area {
-  margin: 15px 0;
+  margin: 15px;
 }
 .player-area h3 {
   margin-bottom: 8px;
 }
-/* Card styling */
+
+/* Style des cartes */
 .card-wrapper {
   display: inline-block;
   position: relative;
@@ -104,7 +112,7 @@ button:disabled {
   height: 120px;
   background: #4a90e2;
   border-radius: 10px;
-  border: 2px solid #fff;
+  border: 2px solid white;
   line-height: 120px;
   font-size: 24px;
   font-weight: bold;
@@ -117,7 +125,6 @@ button:disabled {
 .card:hover {
   transform: scale(1.05);
 }
-/* Card highlight for special actions or initial peek */
 .card.selectable-start {
   outline: 3px dashed yellow;
 }
@@ -125,24 +132,106 @@ button:disabled {
   outline: 3px solid lime;
   box-shadow: 0 0 10px lime;
 }
-/* Discard pile styling */
+
+/* Bouton de défausse sur une carte */
+.discard-btn {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: crimson;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Zone de défausse et informations centrales */
 #discard-info {
   margin: 15px 0;
 }
 #discard-pile {
   display: inline-block;
 }
-/* Log output styling */
+#drawn-card {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #333;
+  background: #fff;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+#turn-info {
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Journal (log) */
 #log {
-  margin: 20px auto;
-  max-width: 500px;
-  text-align: left;
-  padding: 10px;
   border: 2px dashed #333;
+  padding: 10px;
+  max-width: 600px;
+  margin: 20px auto;
   background: rgba(255,255,255,0.8);
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 #log p {
   margin: 5px 0;
+}
+
+/* --- Responsive Styles --- */
+
+/* Pour tablettes et écrans moyens */
+@media (max-width: 768px) {
+  .card, #discard-pile, #drawn-card {
+    width: 60px;
+    height: 90px;
+    font-size: 18px;
+    line-height: 90px;
+  }
+  #welcome input, #welcome button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+  button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  #log {
+    max-width: 90%;
+    margin: 10px auto;
+  }
+}
+
+/* Pour mobiles */
+@media (max-width: 480px) {
+  .card, #discard-pile, #drawn-card {
+    width: 50px;
+    height: 75px;
+    font-size: 16px;
+    line-height: 75px;
+  }
+  #welcome {
+    padding: 10px;
+  }
+  #welcome input, #welcome button {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+  button {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  #log {
+    max-width: 90%;
+    font-size: 10px;
+  }
 }
