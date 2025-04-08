@@ -9,6 +9,7 @@ let mustGiveCardAfterEffect = false;
 let pendingBotCardIndex = null;
 let playerPoints = 0, botPoints = 0;
 let selectingInitialCards = false;
+let currentRound = 1;  // Nouvelle variable pour le numéro de manche
 
 const CARD_POOL = ["R", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "V", "D"];
 const log = (msg) => {
@@ -16,7 +17,7 @@ const log = (msg) => {
   console.log(msg);
 };
 
-// Fonctions auxiliaires pour calculer la somme d'une main
+// Fonctions auxiliaires pour la somme d'une main
 function getCardValue(card) {
   if (card === "R") return 0;
   if (card === "A") return 1;
@@ -73,6 +74,10 @@ function saveGameConfig() {
 }
 
 function startNewGame() {
+  // Incrémente le numéro de manche pour chaque nouvelle partie (à partir de la deuxième)
+  if (document.getElementById("game").style.display === "block") {
+    currentRound++;
+  }
   document.getElementById("setup").style.display = "none";
   document.getElementById("game").style.display = "block";
   playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
@@ -88,6 +93,8 @@ function startNewGame() {
   log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
   updateTurn();
+  // Mettre à jour le numéro de manche dans le scoreboard
+  document.getElementById("manche-number").innerText = currentRound;
 }
 
 function drawCard() {
@@ -146,20 +153,19 @@ function discardCardFromHand(index) {
     return log("⏳ Vous devez d'abord jouer ou défausser la carte piochée.");
   }
   
-  // Rapid discard : si la carte cliquée correspond (en chaîne) à la carte au sommet de la défausse.
+  // Rapid discard réussi : si la carte cliquée correspond exactement à la carte au sommet de la défausse.
   if (topDiscard && String(card) === String(topDiscard)) {
     log(`Avant suppression, playerCards: ${playerCards.join(", ")}`);
-    playerCards.splice(index, 1); // Supprime la carte de la main
+    playerCards.splice(index, 1);
     log(`Après suppression, playerCards: ${playerCards.join(", ")}`);
     discardPile.push(card);
-    log(`⚡ Rapid discard réussi : votre carte ${card} correspond à la défausse et a été retirée.`);
+    log(`⚡ Rapid discard réussi : votre carte ${card} a été retirée.`);
     checkSpecialEffect(card);
     renderCards();
     return;
   } else {
-    // Rapid discard échoué : la carte n'est pas retirée et on ajoute une carte de pénalité.
+    // Rapid discard échoué : la carte reste, et on ajoute une carte de pénalité.
     const penaltyCard = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
-    // On conserve la carte erronée en la laissant en place...
     playerCards.push(penaltyCard);
     log(`❌ Mauvaise tentative de rapid discard. Votre carte ${card} est conservée, et vous piochez une carte de pénalité (${penaltyCard}).`);
     renderCards();
@@ -228,9 +234,14 @@ function renderCards() {
     discardSpan.innerText = topDiscard ?? "Vide";
   }
   
+  // Mise à jour du tableau de score et du numéro de manche
   const scoresList = document.getElementById("scores-list");
   if (scoresList) {
     scoresList.innerText = `${sessionStorage.getItem("username") || "Moi"}: ${playerPoints} - Bot: ${botPoints}`;
+  }
+  const mancheElem = document.getElementById("manche-number");
+  if (mancheElem) {
+    mancheElem.innerText = currentRound;
   }
 }
 
@@ -266,7 +277,7 @@ function renderBotCards() {
         const temp = botCards[i];
         botCards[i] = playerCards[jackSwapSelectedIndex];
         playerCards[jackSwapSelectedIndex] = temp;
-        log(`🔄 Vous échangez votre carte en position ${jackSwapSelectedIndex + 1} avec celle du bot.`);
+        log(`🔄 Échange : votre carte en position ${jackSwapSelectedIndex + 1} avec celle du bot.`);
         specialAction = null;
         jackSwapSelectedIndex = null;
         document.getElementById("skip-special").style.display = "none";
@@ -493,40 +504,47 @@ function skipSpecial() {
 }
 
 function declareCactus(declaringPlayer) {
-  log("🌵 Cactus annoncé !");
-  // Si le bot déclare cactus, on ne fait pas de tour supplémentaire
-  if (declaringPlayer === "Bot") {
-    // Fin de manche immédiate
+  log("🌵 Cactus annoncé ! Tous les autres joueurs jouent encore un tour.");
+  let cactusDeclared = true;
+  const cactusPlayerCards = [...playerCards];
+  const cactusPlayer = currentPlayer;
+  
+  currentPlayer = "Bot";
+  updateTurn();
+  
+  setTimeout(() => {
+    botPlayTurn();
     setTimeout(() => {
       log("🌵 Fin de manche. Révélation des cartes :");
-      log(`Main du joueur : ${playerCards.join(", ")}`);
+      log(`Main du joueur : ${cactusPlayerCards.join(", ")}`);
       log(`Main du bot : ${botCards.join(", ")}`);
-      const cardValue = (c) => c === "R" ? 0 : c === "A" ? 1 : c === 2 ? -2 : (["V", "D", 10].includes(c) ? 10 : parseInt(c));
-      const playerScore = playerCards.map(cardValue).reduce((a, b) => a + b, 0);
+  
+      const cardValue = (c) =>
+        c === "R" ? 0 : c === "A" ? 1 : c === 2 ? -2 : (["V", "D", 10].includes(c) ? 10 : parseInt(c));
+      const playerScore = cactusPlayerCards.map(cardValue).reduce((a, b) => a + b, 0);
       const botScore = botCards.map(cardValue).reduce((a, b) => a + b, 0);
+  
       if (playerScore <= 5) {
         log(`✅ Cactus réussi ! Votre score est ${playerScore}.`);
       } else {
         log(`❌ Cactus raté... Votre score est ${playerScore}.`);
       }
+  
       if (botScore <= 5) {
         log(`🤖 Bot réussit le cactus avec un score de ${botScore}.`);
       }
+  
       if (playerScore <= 5) playerPoints++;
       else botPoints++;
+  
       const scoresList = document.getElementById("scores-list");
       if (scoresList) {
         scoresList.innerText = `${sessionStorage.getItem("username") || "Moi"}: ${playerPoints} - Bot: ${botPoints}`;
       }
-      if (playerPoints >= targetScore || botPoints >= targetScore) {
-        if (playerPoints > botPoints) {
-          log("🏆 Vous remportez la partie !");
-        } else if (botPoints > playerPoints) {
-          log("🏆 Le bot remporte la partie !");
-        } else {
-          log("🤝 Égalité ! La partie se termine.");
-        }
-      } else {
+  
+      // Si les points ne suffisent pas, préparer une nouvelle manche (et incrémenter le numéro de manche)
+      if (playerPoints < targetScore && botPoints < targetScore) {
+        currentRound++;
         const nextBtn = document.getElementById("btn-next-round");
         if (!nextBtn) {
           const btn = document.createElement("button");
@@ -540,61 +558,13 @@ function declareCactus(declaringPlayer) {
           document.getElementById("game").appendChild(btn);
         }
         document.getElementById("btn-next-round").style.display = "inline-block";
+      } else {
+        if (playerPoints >= targetScore) log("🏆 Vous remportez la partie !");
+        else if (botPoints >= targetScore) log("🏆 Le bot remporte la partie !");
+        else log("🤝 Égalité ! La partie se termine.");
       }
     }, 1500);
-  } else {
-    // Si c'est le joueur qui annonce cactus, on laisse le bot jouer un tour avant de finir
-    currentPlayer = "Bot";
-    updateTurn();
-    setTimeout(() => {
-      botPlayTurn();
-      setTimeout(() => {
-        log("🌵 Fin de manche. Révélation des cartes :");
-        log(`Main du joueur : ${playerCards.join(", ")}`);
-        log(`Main du bot : ${botCards.join(", ")}`);
-        const cardValue = (c) => c === "R" ? 0 : c === "A" ? 1 : c === 2 ? -2 : (["V", "D", 10].includes(c) ? 10 : parseInt(c));
-        const playerScore = playerCards.map(cardValue).reduce((a, b) => a + b, 0);
-        const botScore = botCards.map(cardValue).reduce((a, b) => a + b, 0);
-        if (playerScore <= 5) {
-          log(`✅ Cactus réussi ! Votre score est ${playerScore}.`);
-        } else {
-          log(`❌ Cactus raté... Votre score est ${playerScore}.`);
-        }
-        if (botScore <= 5) {
-          log(`🤖 Bot réussit le cactus avec un score de ${botScore}.`);
-        }
-        if (playerScore <= 5) playerPoints++;
-        else botPoints++;
-        const scoresList = document.getElementById("scores-list");
-        if (scoresList) {
-          scoresList.innerText = `${sessionStorage.getItem("username") || "Moi"}: ${playerPoints} - Bot: ${botPoints}`;
-        }
-        if (playerPoints >= targetScore || botPoints >= targetScore) {
-          if (playerPoints > botPoints) {
-            log("🏆 Vous remportez la partie !");
-          } else if (botPoints > playerPoints) {
-            log("🏆 Le bot remporte la partie !");
-          } else {
-            log("🤝 Égalité ! La partie se termine.");
-          }
-        } else {
-          const nextBtn = document.getElementById("btn-next-round");
-          if (!nextBtn) {
-            const btn = document.createElement("button");
-            btn.id = "btn-next-round";
-            btn.innerText = "Nouvelle manche";
-            btn.addEventListener("click", () => {
-              btn.style.display = "none";
-              log("🔄 Nouvelle manche...");
-              startNewGame();
-            });
-            document.getElementById("game").appendChild(btn);
-          }
-          document.getElementById("btn-next-round").style.display = "inline-block";
-        }
-      }, 1500);
-    }, 1500);
-  }
+  }, 1500);
 }
 
 window.addEventListener("DOMContentLoaded", () => {

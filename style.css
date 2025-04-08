@@ -9,17 +9,17 @@ body {
   text-align: center;
 }
 
-/* Page d'accueil – L'image de fond est chargée via CSS */
+/* Page d'accueil – Image de fond chargée via CSS */
 #welcome {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Occupe toute la hauteur du viewport */
+  height: 100vh; /* Hauteur du viewport */
   background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
-  background-size: cover;         /* L'image couvre entièrement le conteneur */
-  background-position: center;    /* L'image est centrée */
-  background-repeat: no-repeat;   /* Pas de répétition */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 20px;
   color: white;
   text-shadow: 1px 1px 4px black;
@@ -57,12 +57,32 @@ button {
   color: white;
 }
 
-/* Sections de configuration et jeu */
+/* Sections de configuration et de jeu */
 #config,
 #lobby,
 #setup,
 #game {
   margin-top: 30px;
+}
+
+/* Scoreboard repositionné en haut à droite */
+#scoreboard {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(240, 240, 240, 0.9);
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Style pour l'information de manche */
+#round-info {
+  margin-top: 10px;
+  font-weight: bold;
 }
 
 /* Zone de jeu */
