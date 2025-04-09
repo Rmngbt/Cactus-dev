@@ -1,82 +1,67 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cactus - Jeu de Cartes</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cactus Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Welcome/Login Screen -->
   <div id="welcome">
     <h1>Bienvenue sur Cactus 🌵</h1>
-    <input type="text" id="username" placeholder="Entre ton pseudo" />
+    <input type="text" id="username" placeholder="Entre ton pseudo">
     <button id="btn-login">Connexion</button>
   </div>
 
-  <!-- Room Selection Screen -->
   <div id="config" style="display:none;">
     <h2>Créer ou rejoindre une partie</h2>
-    <button id="btn-create-room" disabled>Créer une partie</button>
-    <input type="text" id="room-code" placeholder="Code de partie" />
-    <button id="btn-join-room" disabled>Rejoindre une partie</button>
+    <button id="btn-create-room">Créer une partie</button>
+    <input type="text" id="room-code" placeholder="Code de partie">
+    <button id="btn-join-room">Rejoindre une partie</button>
   </div>
 
-  <!-- Lobby Screen -->
   <div id="lobby" style="display:none;">
     <h2>Salle d’attente</h2>
     <p>Code de la partie : <strong id="lobby-room"></strong></p>
     <div id="lobby-players">En attente de joueurs...</div>
-    <button id="start-game" style="display:none;">Lancer la partie</button>
+    <button id="btn-launch-setup" style="display:none;">Configurer la partie</button>
   </div>
 
-  <!-- Game Setup Screen (for host to configure game) -->
   <div id="setup" style="display:none;">
     <h2>Configuration de la partie</h2>
-    <label>Cartes par joueur :
-      <input type="number" id="card-count" value="4" min="3" max="8" />
-    </label><br /><br />
-    <label>Cartes visibles au début :
-      <input type="number" id="visible-count" value="2" min="0" max="8" />
-    </label><br /><br />
-    <label>Score cible :
-      <input type="number" id="target-score" value="3" min="1" max="10" />
-    </label><br /><br />
+    <label>Cartes par joueur : <input type="number" id="card-count" value="4" min="3" max="8"></label><br>
+    <label>Cartes visibles au début : <input type="number" id="visible-count" value="2" min="0" max="8"></label><br>
+    <label>Score cible : <input type="number" id="target-score" value="3" min="1" max="10"></label><br>
     <button id="btn-save-config">Enregistrer config</button>
     <button id="btn-start-game">Lancer la partie</button>
   </div>
 
-  <!-- Game Play Screen -->
   <div id="game" style="display:none;">
-    <!-- Scoreboard (top-right) -->
-    <div id="scoreboard"></div>
-    <!-- Dynamic game area for players' cards -->
-    <div id="game-area"></div>
-    <!-- Action buttons -->
+    <div id="scoreboard">
+      <div id="player-name"></div>
+      <div id="scores-list"></div>
+    </div>
+
+    <div id="center-zone">
+      <div id="discard-pile">Défausse: <span id="discard">Vide</span></div>
+    </div>
+
+    <div id="all-players">
+      <div id="player-hand"></div>
+      <div id="bot-hand"></div>
+    </div>
+
     <button id="btn-draw-card">Piocher une carte</button>
     <button id="btn-discard-swap">Prendre de la défausse</button>
     <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
     <button id="btn-declare-cactus">Cactus</button>
-    <!-- Center info: discard pile, turn indicator, drawn card -->
-    <div id="discard-info">
-      Défausse :
-      <div class="card-wrapper">
-        <div id="discard-pile" class="card"><span id="discard">Vide</span></div>
-      </div>
-    </div>
+
     <p id="turn-info">Tour du joueur</p>
-    <p id="drawn-card" style="display:none; cursor:pointer;">
-      Carte piochée : <span id="new-card"></span>
-    </p>
-    <!-- New round / reset buttons (host only) -->
-    <button id="btn-new-round" style="display:none; margin-top:10px;">Nouvelle manche</button>
-    <button id="btn-reset-game" style="display:none; margin-top:10px;">Nouvelle partie</button>
+    <p id="drawn-card" style="display: none; cursor: pointer;">Carte piochée: <span id="new-card"></span></p>
   </div>
 
-  <!-- Game log/output -->
   <div id="log"></div>
 
-  <!-- Include the game script as a module -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
