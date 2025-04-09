@@ -39,27 +39,47 @@ let selectedForSwap = null;        // Used for Jack effect
 let cactusDeclared = false;
 let cactusPlayerIndex = null;
 
-
-function startNewGame() {
-  // Réinitialisation de l’état
+function startNewGame(host = false) {
+  selectingInitialCards = true;
+  revealedIndexes = [];
   drawnCard = null;
   discardPile = [];
-  revealedIndexes = [];
-  selectingInitialCards = true;
   specialAction = null;
   jackSwapSelectedIndex = null;
   roundComplete = false;
 
-  // Génération de la main du joueur
-  playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  const username = sessionStorage.getItem("username");
 
-  // Si c’est le joueur local, activer la phase mémoire
-  if (players[currentPlayerIndex] === playerId) {
-    log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
+  if (host) {
+    const roomId = sessionStorage.getItem("roomId");
+    const gameRef = ref(database, `games/${roomId}`);
+
+    // Générer les cartes pour chaque joueur
+    const allPlayers = players;
+    const gameState = {
+      startedBy: username,
+      round: currentRound + 1,
+      currentPlayer: allPlayers[0],
+      hands: {},
+      discardPile: [],
+      revealed: {},
+    };
+
+    allPlayers.forEach((p) => {
+      const hand = Array.from({ length: cardCount }, () =>
+        CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]
+      );
+      gameState.hands[p] = hand;
+      gameState.revealed[p] = [];
+    });
+
+    // Écrire dans Firebase → déclenche le jeu pour tout le monde
+    update(gameRef, {
+      gameState,
+    });
+
+    log(`🆕 Nouvelle manche lancée par ${username}`);
   }
-
-  renderCards();
-  updateTurn();
 }
 
 
