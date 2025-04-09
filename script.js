@@ -40,29 +40,27 @@ let cactusDeclared = false;
 let cactusPlayerIndex = null;
 
 
-// Démarrer une nouvelle manche
 function startNewGame() {
-  // Réinitialiser le flag de fin de manche
-  roundComplete = false;
-  document.getElementById("setup").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
-  botCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  // Réinitialisation de l’état
+  drawnCard = null;
   discardPile = [];
   revealedIndexes = [];
   selectingInitialCards = true;
-  drawnCard = null;
   specialAction = null;
   jackSwapSelectedIndex = null;
-  document.getElementById("skip-special").style.display = "none";
-  currentPlayer = "Toi";
-  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
+  roundComplete = false;
+
+  // Génération de la main du joueur
+  playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+
+  // Si c’est le joueur local, activer la phase mémoire
+  if (players[currentPlayerIndex] === playerId) {
+    log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
+  }
+
   renderCards();
   updateTurn();
-  // Mettre à jour le numéro de manche dans le scoreboard
-  document.getElementById("manche-number").innerText = currentRound;
 }
-
 
 
 
@@ -633,45 +631,42 @@ function watchDiscard() {
   });
 }
 
-// Reveal initial cards for this player (start of round)
 function startInitialPeek() {
   const myCards = document.querySelectorAll(`#game-area .card[data-player="${playerIndex}"]`);
   let revealed = 0;
   const toReveal = Math.min(startVisibleCount, myCards.length);
   if (toReveal <= 0) return;
   logAction(`👆 Sélectionnez ${toReveal} carte(s) à regarder (cartes de départ).`);
-  myCards.forEach(cardEl => {
+
+  myCards.forEach((cardEl, idx) => {
     if (parseInt(cardEl.dataset.player) !== playerIndex) return;
     cardEl.classList.add("selectable-start");
-    cardEl.addEventListener("click", function handleInitialClick() {
-      if (revealed >= toReveal) {
-        cardEl.classList.remove("selectable-start");
-        cardEl.removeEventListener("click", handleInitialClick);
-        return;
-      }
-      // Reveal the card value
-      const idx = parseInt(cardEl.dataset.index);
+
+    const handler = () => {
+      if (revealed >= toReveal) return;
+      const index = parseInt(cardEl.dataset.index);
       const myHand = playersData[username]?.hand;
       if (!myHand) return;
-      cardEl.innerText = myHand[idx];
+      cardEl.innerText = myHand[index];
       cardEl.classList.add("highlight");
       revealed++;
+
       if (revealed === toReveal) {
         logAction(`👀 Vous avez regardé vos ${toReveal} carte(s) de départ.`);
-        // Mark peek done in DB
         set(ref(db, `games/${roomId}/players/${username}/peekDone`), true);
-        // Hide cards again after 5s
+
         setTimeout(() => {
-          myCards.forEach(el => {
-            el.innerText = "?";
-            el.classList.remove("highlight");
-            el.classList.remove("selectable-start");
-            el.removeEventListener("click", handleInitialClick);
+          myCards.forEach(c => {
+            c.innerText = "?";
+            c.classList.remove("highlight", "selectable-start");
+            c.removeEventListener("click", handler);
           });
           logAction("🕑 Vos cartes sont à nouveau cachées.");
         }, 5000);
       }
-    });
+    };
+
+    cardEl.addEventListener("click", handler);
   });
 }
 
