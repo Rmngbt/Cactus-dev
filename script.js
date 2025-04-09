@@ -17,6 +17,8 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Global state variables
+let gameState = {};
+
 let roomId = null;
 let username = null;
 let isHost = false;
