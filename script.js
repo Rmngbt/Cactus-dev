@@ -600,8 +600,7 @@ function watchGameState() {
     return;
   }
 
-  const gameRef = ref(database, `games/${roomCode}`); // 🔄 UN SEUL ref() bien défini
-
+  const gameRef = ref(database, `games/${roomCode}`);
   onValue(gameRef, (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
@@ -615,10 +614,10 @@ function watchGameState() {
     targetScore = data.targetScore || 3;
     startVisibleCount = data.visibleCount || 2;
     cardCount = data.cardCount || 4;
-    state = data.state;
     roundComplete = data.roundComplete || false;
     currentRound = data.round || 1;
 
+    const state = data.state;
     if (state === "lobby") {
       document.getElementById("welcome").style.display = "none";
       document.getElementById("config").style.display = "none";
@@ -644,19 +643,14 @@ function watchGameState() {
       }
 
       const me = username;
-      if (
-        playersData[me] &&
-        playersData[me].hand &&
-        playersData[me].peekDone !== true
-      ) {
+      if (playersData[me] && playersData[me].hand && playersData[me].peekDone !== true) {
         startInitialPeek();
       }
 
-      logAction("🎮 La partie commence !");
+      log("🎮 La partie commence !");
     }
   });
 }
-
 // Watch the current discard pile
 function watchDiscard() {
   const discardRef = ref(db, `games/${roomId}/discard`);
