@@ -40,36 +40,28 @@ let cactusDeclared = false;
 let cactusPlayerIndex = null;
 
 
-// ✅ Ajout fonction startNewGame : initialisation d'une manche
+// Démarrer une nouvelle manche
 function startNewGame() {
-  const isHost = sessionStorage.getItem("isHost") === "true";
-  const username = sessionStorage.getItem("username");
-
+  // Réinitialiser le flag de fin de manche
+  roundComplete = false;
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game").style.display = "block";
   playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  botCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
   discardPile = [];
+  revealedIndexes = [];
+  selectingInitialCards = true;
   drawnCard = null;
   specialAction = null;
   jackSwapSelectedIndex = null;
-  revealedIndexes = [];
-  selectingInitialCards = true;
-  roundComplete = false;
-
-  if (isHost) {
-    currentPlayer = username;
-    firebase.database().ref(`${roomCode}/gameState`).set({
-      currentPlayer,
-      playerHands: {
-        [username]: playerCards
-      },
-      discardPile,
-      round: currentRound,
-    });
-  }
-
-  log(`🃏 Sélectionnez ${startVisibleCount} carte(s) à regarder.`);
+  document.getElementById("skip-special").style.display = "none";
+  currentPlayer = "Toi";
+  log(`🃏 Sélectionne ${startVisibleCount} carte(s) à regarder.`);
   renderCards();
   updateTurn();
-} 
+  // Mettre à jour le numéro de manche dans le scoreboard
+  document.getElementById("manche-number").innerText = currentRound;
+}
 
 // 🧠 Associer le bouton de configuration de partie à startNewGame
 function launchConfiguredGame() {
