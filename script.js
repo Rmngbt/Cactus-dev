@@ -63,15 +63,6 @@ function startNewGame() {
   document.getElementById("manche-number").innerText = currentRound;
 }
 
-// 🧠 Associer le bouton de configuration de partie à startNewGame
-function launchConfiguredGame() {
-  document.getElementById("setup").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  startNewGame();
-}
-
-// 📌 Attacher le bouton "Lancer la partie"
-document.getElementById("btn-start-game")?.addEventListener("click", launchConfiguredGame);
 
 
 
