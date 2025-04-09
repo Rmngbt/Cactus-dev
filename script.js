@@ -39,6 +39,50 @@ let selectedForSwap = null;        // Used for Jack effect
 let cactusDeclared = false;
 let cactusPlayerIndex = null;
 
+
+// ✅ Ajout fonction startNewGame : initialisation d'une manche
+function startNewGame() {
+  const isHost = sessionStorage.getItem("isHost") === "true";
+  const username = sessionStorage.getItem("username");
+
+  playerCards = Array.from({ length: cardCount }, () => CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]);
+  discardPile = [];
+  drawnCard = null;
+  specialAction = null;
+  jackSwapSelectedIndex = null;
+  revealedIndexes = [];
+  selectingInitialCards = true;
+  roundComplete = false;
+
+  if (isHost) {
+    currentPlayer = username;
+    firebase.database().ref(`${roomCode}/gameState`).set({
+      currentPlayer,
+      playerHands: {
+        [username]: playerCards
+      },
+      discardPile,
+      round: currentRound,
+    });
+  }
+
+  log(`🃏 Sélectionnez ${startVisibleCount} carte(s) à regarder.`);
+  renderCards();
+  updateTurn();
+} 
+
+// 🧠 Associer le bouton de configuration de partie à startNewGame
+function launchConfiguredGame() {
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  startNewGame();
+}
+
+// 📌 Attacher le bouton "Lancer la partie"
+document.getElementById("btn-start-game")?.addEventListener("click", launchConfiguredGame);
+
+
+
 // Utility: Append a message to the log panel
 function logAction(msg) {
   const logDiv = document.getElementById("log");
