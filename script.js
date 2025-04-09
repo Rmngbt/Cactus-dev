@@ -594,47 +594,59 @@ function watchPlayers() {
   });
 }
 
-// Watch the game state (lobby -> setup -> playing -> lobby)
 function watchGameState() {
-  const stateRef = ref(db, `games/${roomId}/state`);
-  onValue(stateRef, (snapshot) => {
-    const state = snapshot.val();
-    if (!state) return;
-    if (state === "setup") {
-      // Switch from lobby to setup screen
+  const gameRef = ref(db, `games/${roomCode}`);
+  onValue(gameRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    gameState = data;
+    players = Object.keys(data.players || {});
+    playersData = data.players || {};
+    currentPlayer = data.currentTurn;
+    discardPile = data.discardPile || [];
+    drawnCard = data.drawnCard || null;
+    targetScore = data.targetScore || 3;
+    startVisibleCount = data.visibleCount || 2;
+    cardCount = data.cardCount || 4;
+    state = data.state;
+    roundComplete = data.roundComplete || false;
+    currentRound = data.round || 1;
+
+    if (state === "lobby") {
+      document.getElementById("welcome").style.display = "none";
+      document.getElementById("config").style.display = "none";
+      document.getElementById("lobby").style.display = "block";
+      document.getElementById("lobby-room").innerText = roomCode;
+      updateLobbyPlayers();
+    } else if (state === "setup") {
       document.getElementById("lobby").style.display = "none";
       document.getElementById("setup").style.display = "block";
-      logAction("🟢 Configuration de la partie en cours...");
     } else if (state === "playing") {
-      // Start the game for all players
       document.getElementById("lobby").style.display = "none";
       document.getElementById("setup").style.display = "none";
       document.getElementById("game").style.display = "block";
       gameStarted = true;
       watchTurn();
       watchDiscard();
-      currentRound = 1;
       updateScoreboard();
       renderGameArea();
-      // Hide new-round/reset for non-host
+
       if (!isHost) {
         document.getElementById("btn-new-round").style.display = "none";
         document.getElementById("btn-reset-game").style.display = "none";
       }
-      // Initial peek of cards for each player
-      if (playersData[username] && playersData[username].hand) {
-        if (!playersData[username].peekDone) {
-          startInitialPeek();
-        }
+
+      const me = username;
+      if (
+        playersData[me] &&
+        playersData[me].hand &&
+        playersData[me].peekDone !== true
+      ) {
+        startInitialPeek();
       }
+
       logAction("🎮 La partie commence !");
-    } else if (state === "lobby") {
-      // All players back to lobby
-      document.getElementById("game").style.display = "none";
-      document.getElementById("setup").style.display = "none";
-      document.getElementById("lobby").style.display = "block";
-      gameStarted = false;
-      logAction("🏁 Retour au lobby.");
     }
   });
 }
