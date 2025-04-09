@@ -380,62 +380,54 @@ function discardOpponentCard(index) {
 
 function handleCardClick(index, card) {
   if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
+  
   if (specialAction === "revealSelf") {
     if (!revealedIndexes.includes(index)) {
       revealedIndexes.push(index);
+      log(`👁️ Vous regardez votre carte : ${card}`);
     }
-    log(`👁️ Vous regardez votre carte : ${card}`);
-    const cardElems = document.querySelectorAll('#player-hand .card');
-    const selectedCardElem = cardElems[index];
-    selectedCardElem.innerText = card;
-    selectedCardElem.classList.add('highlight');
-    document.getElementById("skip-special").style.display = "none";
-    specialAction = "waitingReveal";
-    setTimeout(() => {
-      selectedCardElem.innerText = "?";
-      selectedCardElem.classList.remove('highlight');
-      specialAction = null;
-      renderCards();
-      log("🕑 Carte de nouveau cachée.");
-      endPlayerTurn();
-    }, 3000);
-  } else if (specialAction === "swapJack") {
-    jackSwapSelectedIndex = index;
-    log(`🃏 Carte sélectionnée pour échange avec le bot.`);
-    document.querySelectorAll('.card').forEach(card => card.classList.remove('highlight-swap'));
-    renderCards();
-  } else if (specialAction === "give") {
-    const giveCard = playerCards[index];
-    playerCards.splice(index, 1);
-    botCards.splice(pendingBotCardIndex, 0, giveCard);
-    log(`🎁 Vous donnez votre carte ${giveCard} au bot.`);
     specialAction = null;
-    pendingBotCardIndex = null;
+    document.getElementById("skip-special").style.display = "none";
     renderCards();
     endPlayerTurn();
-  } else if (drawnCard !== null) {
+  } 
+  else if (specialAction === "swapJack") {
+    jackSwapSelectedIndex = index;
+    log(`🃏 Carte sélectionnée pour échange avec le bot.`);
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight-swap'));
+    renderCards();
+  } 
+  else if (drawnCard !== null) {
     attemptCardSwap(index);
   }
 }
 
+
 function updateTurn() {
-  document.getElementById("turn-info").innerText = `Tour de ${currentPlayer}`;
+  const turnInfo = document.getElementById("turn-info");
+  if (turnInfo) {
+    turnInfo.innerText = `Tour de ${currentPlayer}`;
+  }
 }
 
 function endPlayerTurn() {
-  if (mustGiveCardAfterEffect) {
-    mustGiveCardAfterEffect = false;
-    specialAction = "give";
-    log("🎁 Choisissez une de vos cartes à transférer au bot.");
-    document.getElementById("skip-special").style.display = "none";
-    renderCards();
-    return;
-  }
   if (specialAction) return;
-  currentPlayer = "Bot";
+
+  currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+  currentPlayer = players[currentPlayerIndex].name;
+
   updateTurn();
-  setTimeout(botPlayTurn, 1000);
+  renderCards();
+
+  // Si le joueur suivant doit faire sa sélection mémoire
+  if (players[currentPlayerIndex].revealedIndexes.length < startVisibleCount) {
+    selectingInitialCards = true;
+    revealedIndexes = players[currentPlayerIndex].revealedIndexes;
+    log(`🃏 ${currentPlayer}, sélectionne ${startVisibleCount} carte(s) à regarder.`);
+    renderCards();
+  }
 }
+
 
 function botPlayTurn() {
   const card = CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)];
@@ -584,65 +576,6 @@ function declareCactus(declaringPlayer) {
       }
     }, 1500);
   }, 1500);
-}
-
-function handleCardClick(index, card) {
-  if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
-  if (specialAction === "revealSelf") {
-    if (!revealedIndexes.includes(index)) {
-      revealedIndexes.push(index);
-    }
-    log(`👁️ Vous regardez votre carte : ${card}`);
-    const cardElems = document.querySelectorAll('#player-hand .card');
-    const selectedCardElem = cardElems[index];
-    selectedCardElem.innerText = card;
-    selectedCardElem.classList.add('highlight');
-    document.getElementById("skip-special").style.display = "none";
-    specialAction = "waitingReveal";
-    setTimeout(() => {
-      selectedCardElem.innerText = "?";
-      selectedCardElem.classList.remove('highlight');
-      specialAction = null;
-      renderCards();
-      log("🕑 Carte de nouveau cachée.");
-      endPlayerTurn();
-    }, 3000);
-  } else if (specialAction === "swapJack") {
-    jackSwapSelectedIndex = index;
-    log(`🃏 Carte sélectionnée pour échange avec le bot.`);
-    document.querySelectorAll('.card').forEach(card => card.classList.remove('highlight-swap'));
-    renderCards();
-  } else if (specialAction === "give") {
-    const giveCard = playerCards[index];
-    playerCards.splice(index, 1);
-    botCards.splice(pendingBotCardIndex, 0, giveCard);
-    log(`🎁 Vous donnez votre carte ${giveCard} au bot.`);
-    specialAction = null;
-    pendingBotCardIndex = null;
-    renderCards();
-    endPlayerTurn();
-  } else if (drawnCard !== null) {
-    attemptCardSwap(index);
-  }
-}
-
-function updateTurn() {
-  document.getElementById("turn-info").innerText = `Tour de ${currentPlayer}`;
-}
-
-function endPlayerTurn() {
-  if (mustGiveCardAfterEffect) {
-    mustGiveCardAfterEffect = false;
-    specialAction = "give";
-    log("🎁 Choisissez une de vos cartes à transférer au bot.");
-    document.getElementById("skip-special").style.display = "none";
-    renderCards();
-    return;
-  }
-  if (specialAction) return;
-  currentPlayer = "Bot";
-  updateTurn();
-  setTimeout(botPlayTurn, 1000);
 }
 
 function botPlayTurn() {
@@ -838,65 +771,6 @@ function declareCactus(declaringPlayer) {
       }, 1500);
     }, 1500);
   }
-}
-
-function handleCardClick(index, card) {
-  if (selectingInitialCards) return log("⏳ Termine d'abord ta sélection de cartes mémoire.");
-  if (specialAction === "revealSelf") {
-    if (!revealedIndexes.includes(index)) {
-      revealedIndexes.push(index);
-    }
-    log(`👁️ Vous regardez votre carte : ${card}`);
-    const cardElems = document.querySelectorAll('#player-hand .card');
-    const selectedCardElem = cardElems[index];
-    selectedCardElem.innerText = card;
-    selectedCardElem.classList.add('highlight');
-    document.getElementById("skip-special").style.display = "none";
-    specialAction = "waitingReveal";
-    setTimeout(() => {
-      selectedCardElem.innerText = "?";
-      selectedCardElem.classList.remove('highlight');
-      specialAction = null;
-      renderCards();
-      log("🕑 Carte de nouveau cachée.");
-      endPlayerTurn();
-    }, 3000);
-  } else if (specialAction === "swapJack") {
-    jackSwapSelectedIndex = index;
-    log(`🃏 Carte sélectionnée pour échange avec le bot.`);
-    document.querySelectorAll('.card').forEach(card => card.classList.remove('highlight-swap'));
-    renderCards();
-  } else if (specialAction === "give") {
-    const giveCard = playerCards[index];
-    playerCards.splice(index, 1);
-    botCards.splice(pendingBotCardIndex, 0, giveCard);
-    log(`🎁 Vous donnez votre carte ${giveCard} au bot.`);
-    specialAction = null;
-    pendingBotCardIndex = null;
-    renderCards();
-    endPlayerTurn();
-  } else if (drawnCard !== null) {
-    attemptCardSwap(index);
-  }
-}
-
-function updateTurn() {
-  document.getElementById("turn-info").innerText = `Tour de ${currentPlayer}`;
-}
-
-function endPlayerTurn() {
-  if (mustGiveCardAfterEffect) {
-    mustGiveCardAfterEffect = false;
-    specialAction = "give";
-    log("🎁 Choisissez une de vos cartes à transférer au bot.");
-    document.getElementById("skip-special").style.display = "none";
-    renderCards();
-    return;
-  }
-  if (specialAction) return;
-  currentPlayer = "Bot";
-  updateTurn();
-  setTimeout(botPlayTurn, 1000);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
