@@ -662,7 +662,9 @@ function login() {
   // Go to room selection
   document.getElementById("welcome").style.display = "none";
   document.getElementById("config").style.display = "block";
-  document.getElementById("player-name")?.innerText = username;
+  if (document.getElementById("player-name")) {
+  document.getElementById("player-name").innerText = username;
+}
   logAction("👋 Bienvenue, " + username + " !");
 }
 
