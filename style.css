@@ -146,3 +146,24 @@ button:disabled {
 #log p {
   margin: 5px 0;
 }
+
+/* Quick discard button above player cards */
+.discard-btn {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ccc;
+  color: #000;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 0;
+  cursor: pointer;
+}
+.discard-btn:hover {
+  background: #aaa;
+}

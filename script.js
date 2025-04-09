@@ -4,7 +4,7 @@ import { getDatabase, ref, set, update, onValue, get } from "https://www.gstatic
 
 // Configuration de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBd2O4MWVNlY5MOVffdcvMrkj2lLxJcdv0",
+  apiKey: "AIzaSy...LxJcdv0",  // (clés tronquées pour concision)
   authDomain: "cactus-game-12ae9.firebaseapp.com",
   projectId: "cactus-game-12ae9",
   storageBucket: "cactus-game-12ae9.appspot.com",
@@ -20,22 +20,22 @@ const db = getDatabase(app);
 let roomId = null;
 let username = null;
 let isHost = false;
-let playerIndex = null;             // Index du joueur (1..N dans la partie)
+let playerIndex = null;           // Index du joueur (1..N dans la partie)
 let playerCount = 0;
-let playersData = {};              // Données actuelles des joueurs (noms, mains, scores, etc.)
-let playersByIndex = {};           // Association index -> nom du joueur
-let currentPlayerIndex = null;     // Index du joueur dont c'est le tour
+let playersData = {};            // Données actuelles des joueurs (noms, mains, scores, etc.)
+let playersByIndex = {};         // Association index -> nom du joueur
+let currentPlayerIndex = null;   // Index du joueur dont c'est le tour
 let cardCount = 4;
 let startVisibleCount = 2;
 let targetScore = 3;
 let currentRound = 0;
 let gameStarted = false;
-let drawnCard = null;              // Carte actuellement piochée par ce joueur (s'il y en a une)
-let currentDiscard = null;         // Carte du dessus de la défausse
+let drawnCard = null;            // Carte actuellement piochée par ce joueur (s'il y en a une)
+let currentDiscard = null;       // Carte du dessus de la défausse
 // Indicateurs pour les actions spéciales
 let specialAction = false;
 let pendingSpecial = null;
-let selectedForSwap = null;        // Utilisé pour l'effet du Valet : stocke la carte sélectionnée pour l'échange
+let selectedForSwap = null;      // Utilisé pour l'effet du Valet : stocke la carte sélectionnée pour l'échange
 let cactusDeclared = false;
 let cactusPlayerIndex = null;
 
@@ -68,7 +68,7 @@ function updateScoreboard() {
 function renderGameArea() {
   const area = document.getElementById("game-area");
   if (!area || !playersData) return;
-  area.innerHTML = "";  // nettoyer l'aire de jeu
+  area.innerHTML = "";
   for (let i = 1; i <= playerCount; i++) {
     const name = playersByIndex[i];
     if (!name) continue;
@@ -76,23 +76,33 @@ function renderGameArea() {
     // Crée un conteneur pour la main de ce joueur
     const playerDiv = document.createElement("div");
     playerDiv.className = "player-area";
-    // Étiquette du joueur : affiche le pseudo (marque "(Vous)" pour le joueur local)
+    // Étiquette du joueur : pseudo (marque "(Vous)" pour le joueur local)
     const label = document.createElement("h3");
     label.textContent = (name === username) ? `${name} (Vous)` : name;
     playerDiv.appendChild(label);
-    // Cartes du joueur (affichées face cachée)
+    // Cartes du joueur (affichées face cachée par défaut)
     hand.forEach((cardValue, idx) => {
       const wrapper = document.createElement("div");
       wrapper.className = "card-wrapper";
       const cardEl = document.createElement("div");
       cardEl.className = "card";
-      // Affiche une carte face cachée (point d'interrogation) pour chaque carte
       cardEl.innerText = "?";
       // Attributs data pour identifier la carte cliquée
       cardEl.dataset.player = String(playersData[name].index);
       cardEl.dataset.index = String(idx);
-      // Attache un gestionnaire de clic pour les actions sur la carte (échange, révélation, etc.)
+      // Gestionnaire de clic sur la carte (échange, révélation, etc.)
       cardEl.addEventListener("click", onCardClick);
+      // Ajoute un bouton de défausse rapide au-dessus des cartes du joueur local
+      if (name === username) {
+        const btn = document.createElement("button");
+        btn.innerText = "🗑";
+        btn.className = "discard-btn";
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          quickDiscard(idx);
+        });
+        wrapper.appendChild(btn);
+      }
       wrapper.appendChild(cardEl);
       playerDiv.appendChild(wrapper);
     });
@@ -100,7 +110,7 @@ function renderGameArea() {
   }
 }
 
-// Gestionnaire de clic sur une carte (celle du joueur ou d'un adversaire)
+// Gestionnaire de clic sur une carte (dans sa main ou celle d'un adversaire)
 function onCardClick(event) {
   const cardEl = event.currentTarget;
   const player = parseInt(cardEl.dataset.player);
@@ -141,7 +151,7 @@ function onCardClick(event) {
     return;
   }
   if (specialAction && pendingSpecial === "V") {
-    // Effet du Valet : échanger une de vos cartes avec celle d'un adversaire
+    // Effet Valet : échanger une de vos cartes avec celle d'un adversaire
     if (!selectedForSwap && player === currentPlayerIndex) {
       // Premier clic : sélectionner l'une de vos cartes à échanger
       selectedForSwap = { player, index };
@@ -153,13 +163,18 @@ function onCardClick(event) {
       const myIndex = selectedForSwap.index;
       const opponentName = playersByIndex[player];
       const myName = playersByIndex[selectedForSwap.player];
-      if (!playersData[myName] || !playersData[opponentName]) return;
-      const myHand = [...playersData[myName].hand];
-      const oppHand = [...playersData[opponentName].hand];
+      const myHand = playersData[myName]?.hand;
+      const oppHand = playersData[opponentName]?.hand;
+      if (!myHand || !oppHand) {
+        selectedForSwap = null;
+        return;
+      }
+      // Échange les cartes entre les deux joueurs
       const temp = myHand[myIndex];
-      myHand[myIndex] = oppHand[index];
+      const oppCard = oppHand[index];
+      myHand[myIndex] = oppCard;
       oppHand[index] = temp;
-      // Met à jour les deux mains dans la base de données
+      // Met à jour les mains dans la base de données
       const updates = {};
       updates[`games/${roomId}/players/${myName}/hand`] = myHand;
       updates[`games/${roomId}/players/${opponentName}/hand`] = oppHand;
@@ -171,23 +186,21 @@ function onCardClick(event) {
       return;
     }
   }
-
-  // Si aucune action spéciale n'est en cours, gérer un clic normal (pour échanger la carte piochée)
+  // Aucune action spéciale en cours : gérer le clic normal (échange de la carte piochée)
   if (player !== currentPlayerIndex || drawnCard === null) {
     // Pas le tour de ce joueur ou pas de carte piochée à échanger
     return;
   }
-  // Le joueur actuel a cliqué sur l'une de ses cartes pour l'échanger avec la carte piochée
+  // Le joueur actuel clique sur l'une de ses cartes pour l'échanger avec la carte piochée
   const currentName = playersByIndex[currentPlayerIndex];
   const handArr = playersData[currentName]?.hand;
   if (!handArr) return;
   const replaced = handArr[index];
-  // Effectuer l'échange : placer la carte piochée dans la main et envoyer la carte remplacée à la défausse
+  // Effectuer l'échange : place la carte piochée dans la main et envoie la carte remplacée à la défausse
   handArr[index] = drawnCard;
   const oldCard = replaced;
   const newCard = drawnCard;
   drawnCard = null;
-  // Met à jour la main du joueur et la pile de défausse dans la base
   set(ref(db, `games/${roomId}/players/${currentName}/hand`), handArr);
   set(ref(db, `games/${roomId}/discard`), oldCard);
   // Masquer l'affichage de la carte piochée et journaliser l'échange
@@ -195,7 +208,49 @@ function onCardClick(event) {
   if (drawnCardElem) drawnCardElem.style.display = "none";
   logAction(`🔄 Carte échangée : ${oldCard} ↔ ${newCard}`);
   // Vérifier si la carte défaussée déclenche un effet spécial
-  handleSpecialCard(oldCard);
+  const hadSpecial = handleSpecialCard(oldCard);
+  // Supprimer le bouton "Défausser la carte" s'il était affiché
+  const discardBtn = document.getElementById("btn-discard-drawn");
+  if (discardBtn) discardBtn.remove();
+  // Si aucun effet spécial, terminer le tour du joueur
+  if (!hadSpecial) {
+    endTurnProcedure();
+  }
+}
+
+// Gère la défausse rapide d'une carte de la main (si identique à la défausse)
+function quickDiscard(index) {
+  // Ne pas permettre si une carte piochée est en attente de jeu
+  if (drawnCard !== null) {
+    return logAction("⏳ Vous devez d'abord jouer/défausser la carte que vous avez piochée.");
+  }
+  const currentName = playersByIndex[playerIndex];
+  if (!currentName || !playersData[currentName]) return;
+  const handArr = playersData[currentName].hand;
+  if (!handArr) return;
+  const card = handArr[index];
+  const topDiscard = currentDiscard;
+  if (currentDiscard === null) {
+    return logAction("❌ Aucune carte dans la défausse pour défausse rapide.");
+  }
+  // Tentative de défausse rapide
+  if (String(card) === String(topDiscard)) {
+    // Retire la carte de la main et l'ajoute à la défausse
+    handArr.splice(index, 1);
+    set(ref(db, `games/${roomId}/players/${currentName}/hand`), handArr);
+    set(ref(db, `games/${roomId}/discard`), card);
+    logAction(`⚡ Défausse rapide réussie : votre carte ${card} a été défaussée.`);
+    // Vérifie si cette carte défaussée déclenche un effet spécial
+    const hadSpecial = handleSpecialCard(card);
+    // La défausse rapide n'achève pas directement le tour (le joueur peut continuer son tour normalement)
+  } else {
+    // Échec de la défausse rapide : la carte reste et on ajoute une carte de pénalité
+    const pool = ["R","A",2,3,4,5,6,7,8,9,10,"V","D"];
+    const penaltyCard = pool[Math.floor(Math.random() * pool.length)];
+    handArr.push(penaltyCard);
+    set(ref(db, `games/${roomId}/players/${currentName}/hand`), handArr);
+    logAction(`❌ Mauvaise tentative de défausse rapide. Votre carte ${card} est conservée, et vous piochez une carte de pénalité (${penaltyCard}).`);
+  }
 }
 
 // Vérifie si une carte défaussée déclenche un effet spécial. Renvoie true si une action spéciale est lancée.
@@ -237,8 +292,7 @@ function endTurnProcedure() {
     return;
   }
   if (cactusDeclared && currentPlayerIndex !== cactusPlayerIndex) {
-    // Si Cactus a été déclaré et qu'on vient de donner la main au joueur suivant, on termine la manche ici
-    // (Le décompte final sera déclenché par l'hôte lors du changement de tour)
+    // Si Cactus a été déclaré et qu'on vient de donner la main à un autre joueur, on n'avance pas le tour ici
     return;
   }
   // Passe le tour au joueur suivant
@@ -251,7 +305,7 @@ function skipSpecial() {
   specialAction = false;
   pendingSpecial = null;
   selectedForSwap = null;
-  // Masquer le bouton "Passer l'action spéciale" s'il est visible
+  // Masquer le bouton "Passer l'action spéciale"
   const skipBtn = document.getElementById("skip-special");
   if (skipBtn) skipBtn.style.display = "none";
   logAction("⏭ Action spéciale terminée");
@@ -275,7 +329,15 @@ function drawCard() {
   const drawnCardP = document.getElementById("drawn-card");
   if (newCardSpan && drawnCardP) {
     newCardSpan.innerText = drawnCard;
-    drawnCardP.style.display = "block";  // rendre visible l'indication de carte piochée
+    drawnCardP.style.display = "block";
+    // Affiche le bouton "Défausser la carte" pour permettre de défausser sans échanger
+    if (!document.getElementById("btn-discard-drawn")) {
+      const discardBtn = document.createElement("button");
+      discardBtn.id = "btn-discard-drawn";
+      discardBtn.textContent = "Défausser la carte";
+      discardBtn.addEventListener("click", discardDrawnCard);
+      drawnCardP.after(discardBtn);
+    }
   }
 }
 
@@ -301,6 +363,13 @@ function takeDiscard() {
   if (newCardSpan && drawnCardP) {
     newCardSpan.innerText = drawnCard;
     drawnCardP.style.display = "block";
+    if (!document.getElementById("btn-discard-drawn")) {
+      const discardBtn = document.createElement("button");
+      discardBtn.id = "btn-discard-drawn";
+      discardBtn.textContent = "Défausser la carte";
+      discardBtn.addEventListener("click", discardDrawnCard);
+      drawnCardP.after(discardBtn);
+    }
   }
 }
 
@@ -317,6 +386,9 @@ function discardDrawnCard() {
   // Cache l'indicateur de carte piochée
   const drawnCardP = document.getElementById("drawn-card");
   if (drawnCardP) drawnCardP.style.display = "none";
+  // Retire le bouton "Défausser la carte" de l'interface
+  const discardButton = document.getElementById("btn-discard-drawn");
+  if (discardButton) discardButton.remove();
   // Si aucun effet spécial n'est déclenché, terminer le tour immédiatement
   if (!hadSpecial) {
     endTurnProcedure();
@@ -329,11 +401,13 @@ function declareCactus() {
   cactusDeclared = true;
   cactusPlayerIndex = currentPlayerIndex;
   logAction("🌵 Joueur " + currentPlayerIndex + " dit Cactus !");
+  // Signale la déclaration de Cactus dans la base de données
+  set(ref(db, `games/${roomId}/cactusCall`), { index: currentPlayerIndex });
   // Terminer le tour immédiatement après la déclaration
   endTurnProcedure();
 }
 
-// Dévoile les scores finaux et détermine le vainqueur de la manche (exécuté par l'hôte uniquement)
+// Dévoile les scores finaux et détermine le vainqueur de la manche
 function revealFinalScores() {
   // Calcule la somme des valeurs de la main de chaque joueur
   const sumHand = (cards) => cards.reduce((total, c) => total + getCardValue(c), 0);
@@ -388,6 +462,8 @@ function revealFinalScores() {
       newRoundBtn.style.display = "inline-block";
     }
   }
+  // Réinitialise le signal de Cactus dans la base de données
+  set(ref(db, `games/${roomId}/cactusCall`), null);
 }
 
 // Fonction utilitaire pour obtenir la valeur numérique d'une carte (pour le calcul des scores)
@@ -402,39 +478,32 @@ function getCardValue(card) {
 
 // Réinitialise la partie et revient au lobby (réinitialisation de l'UI localement)
 function resetGame() {
-  // (Dans une implémentation complète, on supprimerait l'état de la partie dans la base de données)
+  // (Dans une implémentation complète, on supprimerait aussi l'état de la partie dans la base de données)
   document.getElementById("config").style.display = "block";
   document.getElementById("game").style.display = "none";
-  document.getElementById("btn-reset-game").style.display = "none";
-  document.getElementById("log").innerHTML = "";
-  // Réinitialise les variables locales de jeu
-  playersData = {};
-  playersByIndex = {};
-  playerIndex = null;
-  playerCount = 0;
-  currentPlayerIndex = null;
-  currentRound = 0;
-  gameStarted = false;
-  drawnCard = null;
-  currentDiscard = null;
-  specialAction = false;
-  pendingSpecial = null;
-  selectedForSwap = null;
-  cactusDeclared = false;
-  cactusPlayerIndex = null;
-  logAction("🔁 Partie réinitialisée.");
 }
 
-// ***** Synchronisation en temps réel avec Firebase Realtime Database *****
+// Arrête la partie en cours et renvoie tous les joueurs au lobby
+function stopGame() {
+  if (!roomId) return;
+  set(ref(db, `games/${roomId}/state`), "ended");
+  document.getElementById("game").style.display = "none";
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("lobby").style.display = "none";
+  document.getElementById("config").style.display = "block";
+  gameStarted = false;
+  currentRound = 0;
+  sessionStorage.removeItem("roomId");
+  logAction("🏁 Vous avez arrêté la partie.");
+}
 
-// Surveille les changements du joueur dont c'est le tour
+// Surveille les changements du tour de jeu (joueur courant)
 function watchTurn() {
   const turnRef = ref(db, `games/${roomId}/currentPlayer`);
   onValue(turnRef, (snapshot) => {
     const turn = snapshot.val();
     if (turn === null) return;
     currentPlayerIndex = turn;
-    // Met à jour l'indicateur de tour
     const turnInfo = document.getElementById("turn-info");
     if (turnInfo) {
       const name = playersByIndex[turn] || `Joueur ${turn}`;
@@ -447,9 +516,17 @@ function watchTurn() {
     document.getElementById("btn-declare-cactus").disabled = !isMyTurn;
     // Journalise le changement de tour
     logAction("🔄 Tour du joueur " + turn);
-    // Si Cactus a été déclaré et qu'on vient de passer au joueur suivant, l'hôte déclenche le décompte final
-    if (cactusDeclared && turn !== cactusPlayerIndex && isHost) {
-      revealFinalScores();
+    // Si Cactus a été déclaré et qu'on revient au joueur qui a dit Cactus, l'hôte déclenche le décompte final
+    if (cactusDeclared && turn === cactusPlayerIndex) {
+      // Bloquer les actions du joueur qui a déclaré Cactus (manche terminée)
+      if (playerIndex === cactusPlayerIndex) {
+        document.getElementById("btn-draw-card").disabled = true;
+        document.getElementById("btn-discard-swap").disabled = true;
+        document.getElementById("btn-declare-cactus").disabled = true;
+      }
+      if (isHost) {
+        revealFinalScores();
+      }
     }
   });
 }
@@ -499,7 +576,7 @@ function watchPlayers() {
   });
 }
 
-// Surveille l'état de la partie (pour passer du lobby à la config, puis au jeu)
+// Surveille l'état de la partie (pour passer du lobby à la config, puis au jeu, ou arrêt de partie)
 function watchGameState() {
   const stateRef = ref(db, `games/${roomId}/state`);
   onValue(stateRef, (snapshot) => {
@@ -516,11 +593,12 @@ function watchGameState() {
       document.getElementById("setup").style.display = "none";
       document.getElementById("game").style.display = "block";
       gameStarted = true;
-      // Initialise les surveillances de tour, de défausse et de manche
+      // Initialise les surveillances de tour, de défausse, de manche et de Cactus
       watchTurn();
       watchDiscard();
       watchRound();
-      // L'hôte a déjà distribué les cartes et défini le joueur initial. Pour un client, les données sont déjà disponibles via watchPlayers.
+      watchCactusCall();
+      // L'hôte a déjà distribué les cartes et défini le joueur initial. Chez les autres joueurs, les données sont chargées via watchPlayers.
       // Affiche l'état de jeu initial
       currentRound = 1;
       updateScoreboard();
@@ -530,11 +608,17 @@ function watchGameState() {
         document.getElementById("btn-new-round").style.display = "none";
         document.getElementById("btn-reset-game").style.display = "none";
       }
-      // Permet à chaque joueur de regarder ses cartes initiales visibles
-      if (playersData[username] && playersData[username].hand) {
-        startInitialPeek();
-      }
       logAction("🎮 La partie commence !");
+    } else if (state === "ended") {
+      // Retourne au lobby (fin de session)
+      document.getElementById("game").style.display = "none";
+      document.getElementById("setup").style.display = "none";
+      document.getElementById("lobby").style.display = "none";
+      document.getElementById("config").style.display = "block";
+      gameStarted = false;
+      currentRound = 0;
+      sessionStorage.removeItem("roomId");
+      logAction("🏁 La partie a été arrêtée par un joueur.");
     }
   });
 }
@@ -557,8 +641,29 @@ function watchRound() {
   onValue(roundRef, (snapshot) => {
     const roundNum = snapshot.val();
     if (roundNum !== null) {
+      // Lance la phase de mémoire au début de chaque nouvelle manche (si configurée)
+      if (((currentRound === 0 && roundNum === 1) || roundNum === currentRound + 1) &&
+          playersData[username] && playersData[username].hand) {
+        startInitialPeek();
+      }
       currentRound = roundNum;
       updateScoreboard();
+    }
+  });
+}
+
+// Surveille la déclaration de "Cactus" dans la base de données
+function watchCactusCall() {
+  const cactusRef = ref(db, `games/${roomId}/cactusCall`);
+  onValue(cactusRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data && data.index) {
+      cactusDeclared = true;
+      cactusPlayerIndex = data.index;
+    } else {
+      // Réinitialise les indicateurs Cactus si la valeur est remise à zéro
+      cactusDeclared = false;
+      cactusPlayerIndex = null;
     }
   });
 }
@@ -589,7 +694,7 @@ function startInitialPeek() {
       cardEl.classList.add("highlight");
       revealed++;
       if (revealed === toReveal) {
-        logAction(`👀 Vous avez regardé vos ${toReveal} carte(s) de départ.`);
+        logAction("👀 Vous avez regardé vos " + toReveal + " carte(s) de départ.");
         // Cache à nouveau ces cartes après 5 secondes
         setTimeout(() => {
           myCards.forEach(el => {
@@ -605,8 +710,6 @@ function startInitialPeek() {
   });
 }
 
-// ***** Gestionnaires d'interactions utilisateur (Login, Créer/Rejoindre, Démarrer, etc.) *****
-
 // Gère la connexion de l'utilisateur (saisie du pseudo)
 function login() {
   const userInput = document.getElementById("username");
@@ -620,13 +723,10 @@ function login() {
   // Passe à l'écran de sélection de partie
   document.getElementById("welcome").style.display = "none";
   document.getElementById("config").style.display = "block";
-  //document.getElementById("player-name")?.innerText = username;
-  
   const playerNameElem = document.getElementById("player-name");
-if (playerNameElem) {
-  playerNameElem.innerText = username;
-}
-  
+  if (playerNameElem) {
+    playerNameElem.innerText = username;
+  }
   logAction("👋 Bienvenue, " + username + " !");
 }
 
@@ -641,86 +741,69 @@ async function createRoom() {
   sessionStorage.setItem("roomId", roomId);
   sessionStorage.setItem("username", username);
   sessionStorage.setItem("isHost", "true");
-  // Initialise la salle dans la base : ajoute le joueur hôte (index 1, score 0)
-  await set(ref(db, `games/${roomId}/players/${username}`), { connected: true, index: 1, score: 0 });
-  await set(ref(db, `games/${roomId}/host`), username);
-  // Définit le tour initial au joueur 1 (hôte) dans la base
-  await set(ref(db, `games/${roomId}/currentPlayer`), 1);
-  // Affiche l'interface du lobby
+  // Crée le nœud de jeu dans la base de données
+  const playerData = {};
+  playerData[username] = { index: 1, score: 0 };
+  await set(ref(db, `games/${roomId}/players`), playerData);
+  await set(ref(db, `games/${roomId}/state`), "lobby");
   document.getElementById("config").style.display = "none";
   document.getElementById("lobby").style.display = "block";
   document.getElementById("lobby-room").innerText = roomId;
-  logAction("🔧 Partie créée. Code : " + roomId);
-  logAction("👤 Joueur ajouté : " + username + " (hôte)");
-  // Commence à surveiller les joueurs et l'état de la partie
+  logAction("🆕 Salle de jeu créée : " + roomId);
   watchPlayers();
   watchGameState();
 }
 
 // Rejoint une partie existante
 async function joinRoom() {
-  const codeInput = document.getElementById("room-code");
-  const code = codeInput.value.trim().toUpperCase();
-  if (!code) {
-    return alert("Entrez un code de partie valide.");
+  roomId = document.getElementById("room-code").value.trim().toUpperCase();
+  if (!roomId) {
+    return alert("Entrez un code de partie.");
   }
-  roomId = code;
-  isHost = false;
   username = username || sessionStorage.getItem("username") || "Joueur";
-  sessionStorage.setItem("roomId", roomId);
-  sessionStorage.setItem("username", username);
-  sessionStorage.setItem("isHost", "false");
-  // Détermine le prochain index de joueur en comptant les joueurs existants dans la base
   try {
     const snapshot = await get(ref(db, `games/${roomId}/players`));
     if (!snapshot.exists()) {
-      return alert("Code de partie introuvable.");
+      return alert("Aucune partie trouvée avec ce code.");
     }
-    const currentPlayers = snapshot.val();
-    const count = Object.keys(currentPlayers).length;
-    if (count >= 8) {
-      return alert("Cette partie est complète (8 joueurs maximum).");
-    }
-    const newIndex = count + 1;
-    // Ajoute ce joueur dans la salle
-    await set(ref(db, `games/${roomId}/players/${username}`), { connected: true, index: newIndex, score: 0 });
-  } catch (err) {
-    console.error("Join room error:", err);
-    return alert("Impossible de rejoindre la partie. Vérifiez le code.");
+    const players = snapshot.val();
+    const playerIndexNums = Object.values(players).map(p => p.index);
+    const newIndex = Math.max(...playerIndexNums) + 1;
+    players[username] = { index: newIndex, score: 0 };
+    await set(ref(db, `games/${roomId}/players`), players);
+    sessionStorage.setItem("roomId", roomId);
+    sessionStorage.setItem("username", username);
+    sessionStorage.setItem("isHost", "false");
+    document.getElementById("config").style.display = "none";
+    document.getElementById("lobby").style.display = "block";
+    document.getElementById("lobby-room").innerText = roomId;
+    logAction("🔗 Rejoint la partie " + roomId);
+    isHost = false;
+    watchPlayers();
+    watchGameState();
+  } catch (e) {
+    alert("Erreur lors de la connexion à la partie : " + e);
   }
-  // Affiche l'interface du lobby
-  document.getElementById("config").style.display = "none";
-  document.getElementById("lobby").style.display = "block";
-  document.getElementById("lobby-room").innerText = roomId;
-  logAction("🔗 Rejoint la partie : " + roomId);
-  logAction("👤 Joueur ajouté : " + username);
-  // Commence à surveiller les joueurs et l'état de la partie
-  watchPlayers();
-  watchGameState();
 }
 
-// Lance l'écran de configuration de la partie (clic "Lancer la partie" par l'hôte dans le lobby)
+// Lance l'écran de configuration de partie (hôte)
 function launchSetup() {
-  if (!isHost) return;
-  set(ref(db, `games/${roomId}/state`), "setup");
-  // (L'affichage de l'écran de config est géré via watchGameState sur tous les clients)
+  document.getElementById("lobby").style.display = "none";
+  document.getElementById("setup").style.display = "block";
 }
 
-// Enregistre la configuration de la partie (hôte uniquement)
+// Enregistre la configuration de la partie (cartes, score cible)
 function saveGameConfig() {
-  if (!isHost) return;
-  // Lit les valeurs des champs de configuration
-  cardCount = parseInt(document.getElementById("card-count").value) || 4;
   startVisibleCount = parseInt(document.getElementById("visible-count").value) || 2;
+  cardCount = parseInt(document.getElementById("card-count").value) || 4;
   targetScore = parseInt(document.getElementById("target-score").value) || 3;
-  logAction(`💾 Configuration : ${cardCount} cartes, ${startVisibleCount} visibles, objectif ${targetScore} manche(s) gagnante(s).`);
-  // (La configuration sera enregistrée dans la base lors du démarrage de la partie)
+  logAction(`💾 Configuration : ${cardCount} cartes, ${startVisibleCount} visibles, cible ${targetScore} manches.`);
 }
 
-// Démarre la partie (clic "Lancer la partie" par l'hôte sur l'écran de config)
+// Démarre la partie (clic "Lancer la partie" par l'hôte)
 function startGame() {
   if (!isHost) return;
-  // Enregistre la configuration de la partie dans la base (optionnel)
+  // Enregistre la configuration de la partie dans la base
   const configData = { cardCount, startVisibleCount, targetScore };
   set(ref(db, `games/${roomId}/config`), configData);
   // Distribue des mains aléatoires à chaque joueur
@@ -732,10 +815,10 @@ function startGame() {
       hand.push(deckValues[Math.floor(Math.random() * deckValues.length)]);
     }
     updates[`games/${roomId}/players/${name}/hand`] = hand;
-    // S'assure que chaque joueur a un champ score (le laisse inchangé ou 0 par défaut)
+    // S'assure que chaque joueur a un champ score (0 par défaut s'il n'existe pas)
     updates[`games/${roomId}/players/${name}/score`] = playersData[name].score ?? 0;
   }
-  // Initialise l'état de jeu : vide la défausse, manche 1, et démarre le jeu
+  // Initialise l'état de jeu : vide la défausse, manche 1, et démarre la partie
   updates[`games/${roomId}/discard`] = null;
   updates[`games/${roomId}/round`] = 1;
   updates[`games/${roomId}/state`] = "playing";
@@ -772,7 +855,7 @@ function startNewRound() {
   }
   updates[`games/${roomId}/discard`] = null;
   updates[`games/${roomId}/round`] = currentRound;
-  // Remet le tour au joueur 1 (l'hôte commence chaque nouvelle manche)
+  // Le joueur 1 (hôte) commence chaque nouvelle manche
   updates[`games/${roomId}/currentPlayer`] = 1;
   update(ref(db), updates);
   // Cache le bouton de nouvelle manche jusqu'à la fin de cette manche
@@ -792,10 +875,11 @@ document.getElementById("btn-discard-swap").addEventListener("click", takeDiscar
 document.getElementById("drawn-card").addEventListener("click", discardDrawnCard);
 document.getElementById("skip-special").addEventListener("click", skipSpecial);
 document.getElementById("btn-declare-cactus").addEventListener("click", declareCactus);
+document.getElementById("btn-stop-game").addEventListener("click", stopGame);
 document.getElementById("btn-new-round").addEventListener("click", startNewRound);
 document.getElementById("btn-reset-game").addEventListener("click", resetGame);
 
-// Au chargement de la page, si l'utilisateur a déjà une session en cours, le reconnecter automatiquement
+// Au chargement de la page, si une session existe, reprendre la connexion automatiquement
 window.addEventListener("load", () => {
   const savedRoom = sessionStorage.getItem("roomId");
   const savedName = sessionStorage.getItem("username");
