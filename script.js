@@ -593,18 +593,15 @@ function watchPlayers() {
     }
   });
 }
-
 function watchGameState() {
-	
-	const roomCode = sessionStorage.getItem("roomCode");
+  const roomCode = sessionStorage.getItem("roomCode");
   if (!roomCode) {
     console.error("roomCode est manquant !");
     return;
   }
 
-  const roomRef = ref(database, `games/${roomCode}`);
-	
-  const gameRef = ref(db, `games/${roomCode}`);
+  const gameRef = ref(database, `games/${roomCode}`); // 🔄 UN SEUL ref() bien défini
+
   onValue(gameRef, (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
