@@ -594,7 +594,7 @@ function watchPlayers() {
   });
 }
 function watchGameState() {
-  const roomCode = sessionStorage.getItem("roomCode");
+  const roomCode = sessionStorage.getItem("roomId");
   if (!roomCode) {
     console.error("roomCode est manquant !");
     return;
