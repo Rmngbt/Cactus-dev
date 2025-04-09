@@ -52,7 +52,7 @@ function startNewGame(host = false) {
 
   if (host) {
     const roomId = sessionStorage.getItem("roomId");
-    const gameRef = ref(database, `games/${roomId}`);
+    const gameRef = ref(db, `games/${roomId}`);
 
     // Générer les cartes pour chaque joueur
     const allPlayers = players;
@@ -600,7 +600,7 @@ function watchGameState() {
     return;
   }
 
-  const gameRef = ref(database, `games/${roomCode}`);
+  const gameRef = ref(db, `games/${roomCode}`);
   onValue(gameRef, (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
