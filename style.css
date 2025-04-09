@@ -167,3 +167,17 @@ button:disabled {
 .discard-btn:hover {
   background: #aaa;
 }
+.quick-discard-btn {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  background: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
