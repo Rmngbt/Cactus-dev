@@ -38,7 +38,8 @@
 
   <div id="game" style="display:none;">
     <div id="scoreboard">
-      <div id="player-name"></div>
+      <strong>Scores</strong>
+      <div id="player-name">Moi</div>
       <div id="scores-list"></div>
     </div>
 
@@ -48,16 +49,20 @@
 
     <div id="all-players">
       <div id="player-hand"></div>
-      <div id="bot-hand"></div>
+      <div id="opponent-hand"></div>
     </div>
 
-    <button id="btn-draw-card">Piocher une carte</button>
-    <button id="btn-discard-swap">Prendre de la défausse</button>
-    <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
-    <button id="btn-declare-cactus">Cactus</button>
+    <div id="actions">
+      <button id="btn-draw-card">Piocher une carte</button>
+      <button id="btn-discard-swap">Prendre de la défausse</button>
+      <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
+      <button id="btn-declare-cactus">Cactus</button>
+      <button id="btn-next-round" style="display:none;">Nouvelle manche</button>
+    </div>
 
-    <p id="turn-info">Tour du joueur</p>
-    <p id="drawn-card" style="display: none; cursor: pointer;">Carte piochée: <span id="new-card"></span></p>
+    <div id="drawn-card" style="display: none; cursor: pointer;">
+      Carte piochée: <span id="new-card"></span>
+    </div>
   </div>
 
   <div id="log"></div>
