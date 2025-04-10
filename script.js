@@ -17,6 +17,12 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let gameState = {};
+let players = [];
+let currentPlayer = "";
+let state = "";
+let roundComplete = false;
+let gameStarted = false;
+
 let roomId = null;
 let username = null;
 let isHost = false;
@@ -592,8 +598,9 @@ function watchPlayers() {
     }
   });
 }
+
 function watchGameState() {
-  const roomCode = sessionStorage.getItem("roomId");
+  const roomCode = sessionStorage.getItem("roomCode");
   if (!roomCode) {
     console.error("roomCode est manquant !");
     return;
@@ -604,6 +611,7 @@ function watchGameState() {
     const data = snapshot.val();
     if (!data) return;
 
+    // Mise à jour des variables globales
     gameState = data;
     players = Object.keys(data.players || {});
     playersData = data.players || {};
@@ -613,10 +621,11 @@ function watchGameState() {
     targetScore = data.targetScore || 3;
     startVisibleCount = data.visibleCount || 2;
     cardCount = data.cardCount || 4;
+    state = data.state;
     roundComplete = data.roundComplete || false;
     currentRound = data.round || 1;
 
-    const state = data.state;
+    // Gestion des vues selon l'état du jeu
     if (state === "lobby") {
       document.getElementById("welcome").style.display = "none";
       document.getElementById("config").style.display = "none";
@@ -630,6 +639,7 @@ function watchGameState() {
       document.getElementById("lobby").style.display = "none";
       document.getElementById("setup").style.display = "none";
       document.getElementById("game").style.display = "block";
+
       gameStarted = true;
       watchTurn();
       watchDiscard();
@@ -642,14 +652,19 @@ function watchGameState() {
       }
 
       const me = username;
-      if (playersData[me] && playersData[me].hand && playersData[me].peekDone !== true) {
+      if (
+        playersData[me] &&
+        playersData[me].hand &&
+        playersData[me].peekDone !== true
+      ) {
         startInitialPeek();
       }
 
-      log("🎮 La partie commence !");
+      logAction("🎮 La partie commence !");
     }
   });
 }
+
 // Watch the current discard pile
 function watchDiscard() {
   const discardRef = ref(db, `games/${roomId}/discard`);
