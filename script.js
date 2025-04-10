@@ -470,6 +470,8 @@ function revealFinalScores() {
     logAction("🤝 Égalité ! Pas de gagnant pour cette manche.");
   } else {
     logAction("🏆 " + winnerName + " remporte la manche !");
+	set(ref(db, `games/${roomId}/lastWinner`), winnerName);
+
     const newScore = (playersData[winnerName].score || 0) + 1;
     set(ref(db, `games/${roomId}/players/${winnerName}/score`), newScore);
     if (newScore >= targetScore) {
@@ -484,7 +486,25 @@ function revealFinalScores() {
     cactusPlayerIndex = null;
     document.getElementById("btn-new-round").style.display = "inline-block";
   }
+  
 }
+
+function watchLastWinner() {
+  const winnerRef = ref(db, `games/${roomId}/lastWinner`);
+  onValue(winnerRef, (snapshot) => {
+    const winner = snapshot.val();
+    const winDiv = document.getElementById("winner-message");
+    if (!winDiv) return;
+    if (winner) {
+      winDiv.innerText = "🏆 " + winner + " remporte la manche !";
+      winDiv.style.display = "block";
+    } else {
+      winDiv.style.display = "none";
+    }
+  });
+}
+
+
 
 // Helper to get numeric value of a card (for scoring purposes)
 function getCardValue(card) {
@@ -695,14 +715,11 @@ function watchGameState() {
 
 // Watch the current discard pile (updates currentDiscard and UI when discard changes)
 function watchDiscard() {
-  const discardRef = ref(db, `games/${roomId}/discard`);
-  onValue(discardRef, (snapshot) => {
-    currentDiscard = snapshot.val();
-    const discardText = document.getElementById("discard");
-    if (discardText) {
-      discardText.innerText = currentDiscard ?? "Vide";
-    }
-  });
+	
+	const discardText = document.getElementById("discard");
+if (discardText) {
+    discardText.innerText = (currentDiscard === null ? "Pioche" : currentDiscard);
+}
 }
 
 // Allow a player to peek at their initial cards at the start of the round
@@ -726,19 +743,20 @@ function startInitialPeek() {
       cardEl.classList.add("highlight");
       revealed++;
 
-      if (revealed === toReveal) {
-        logAction(`👀 Vous avez regardé vos ${toReveal} carte(s) de départ.`);
-        set(ref(db, `games/${roomId}/players/${username}/peekDone`), true);
-
-        setTimeout(() => {
-          myCards.forEach(c => {
-            c.innerText = "?";
-            c.classList.remove("highlight", "selectable-start");
-            c.removeEventListener("click", handler);
-          });
-          logAction("🕑 Vos cartes sont à nouveau cachées.");
-        }, 5000);
-      }
+  if (revealed === toReveal) {
+    logAction(`👀 Vous avez regardé vos ${toReveal} carte(s) de départ.`);
+    setTimeout(() => {
+      myCards.forEach(c => {
+        c.innerText = "?";
+        c.classList.remove("highlight", "selectable-start");
+        c.removeEventListener("click", handler);
+      });
+      logAction("🕑 Vos cartes sont à nouveau cachées.");
+      set(ref(db, `games/${roomId}/players/${username}/peekDone`), true);
+    }, 5000);
+}
+  
+  
     };
 
     cardEl.addEventListener("click", handler);
@@ -870,6 +888,8 @@ function startGame() {
 }
 
 function startNewRound() {
+	updates[`games/${roomId}/lastWinner`] = null;
+
   if (!isHost) return;
   currentRound += 1;
   // Reset round-specific flags
