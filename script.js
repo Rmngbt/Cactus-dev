@@ -16,42 +16,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Global state variables
 let gameState = {};
-
 let roomId = null;
 let username = null;
 let isHost = false;
-let playerIndex = null;             // This player's index (1..N in the room)
+let playerIndex = null;
 let playerCount = 0;
-let playersData = {};              // Latest players data from DB (names, hands, scores, etc.)
-let playersByIndex = {};           // Map player index -> name
-let currentPlayerIndex = null;     // Whose turn it is (numeric index)
+let playersData = {};
+let playersByIndex = {};
+let currentPlayerIndex = null;
 let cardCount = 4;
 let startVisibleCount = 2;
 let targetScore = 3;
 let currentRound = 0;
 let gameStarted = false;
-let drawnCard = null;              // Card currently drawn by this player (if any)
-let currentDiscard = null;         // Current top of discard pile
-// Flags for special actions
+let drawnCard = null;
+let currentDiscard = null;
 let specialAction = false;
 let pendingSpecial = null;
-let selectedForSwap = null;        // Used for Jack effect
+let selectedForSwap = null;
 let cactusDeclared = false;
 let cactusPlayerIndex = null;
-let gameState = {};
-let players = [];
-let currentPlayer = null;
-let playersData = {};
-let discardPile = [];
-let drawnCard = null;
-let cardCount = 4;
-let startVisibleCount = 2;
-let targetScore = 3;
-let currentRound = 1;
-let roundComplete = false;
-let state = "lobby";
 
 function startNewGame(host = false) {
   selectingInitialCards = true;
