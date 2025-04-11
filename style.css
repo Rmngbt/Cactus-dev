@@ -1,12 +1,13 @@
+/* style.css (fusionné avec version précédente) */
 body {
   font-family: 'Comic Sans MS', cursive, sans-serif;
-  text-align: center;
   margin: 0;
   padding: 0;
   background-color: #f5f5dc;
   color: #333;
+  text-align: center;
 }
-/* Welcome screen with background image */
+
 #welcome {
   display: flex;
   flex-direction: column;
@@ -16,9 +17,12 @@ body {
   background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
   color: white;
   text-shadow: 1px 1px 4px black;
 }
+
 #welcome input,
 #welcome button {
   margin: 10px;
@@ -27,15 +31,17 @@ body {
   border-radius: 12px;
   border: none;
 }
+
 #welcome button {
   background-color: #32cd32;
   color: white;
   cursor: pointer;
 }
+
 #welcome button:hover {
   background-color: #28a428;
 }
-/* General buttons */
+
 button {
   font-family: inherit;
   font-size: 14px;
@@ -47,151 +53,136 @@ button {
   background: #6b8e23;
   color: white;
 }
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-/* Sections spacing */
+
 #config,
 #lobby,
 #setup,
 #game {
   margin-top: 30px;
 }
-/* Scoreboard box (top-right corner) */
-#scoreboard {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: rgba(240,240,240,0.9);
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: left;
-  font-size: 14px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-#scoreboard strong {
-  display: block;
-  margin-bottom: 5px;
-}
-#scoreboard .highlight {
-  font-weight: bold;
-}
-/* Round info text inside scoreboard */
-#scoreboard .round-info {
-  margin-top: 8px;
-  font-weight: bold;
-}
-/* Game area and player hands */
-#game-area {
+
+#all-players {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin-top: 20px;
 }
-.player-area {
-  margin: 15px 0;
+
+.player-hand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 10px 0;
 }
-.player-area h3 {
-  margin-bottom: 8px;
+
+.player-hand h3 {
+  margin-bottom: 10px;
 }
-/* Card styling */
-.card-wrapper {
-  display: inline-block;
-  position: relative;
-  margin: 5px;
-}
-.card {
+
+.player-hand .card {
   width: 80px;
   height: 120px;
   background: #4a90e2;
   border-radius: 10px;
-  border: 2px solid #fff;
+  border: 2px solid white;
+  text-align: center;
   line-height: 120px;
   font-size: 24px;
   font-weight: bold;
   color: white;
-  text-align: center;
+  margin: 5px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+#center-zone,
+#central-piles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+#center-zone .card,
+#central-piles .card {
+  width: 80px;
+  height: 120px;
+  background: #d2691e;
+  border-radius: 10px;
+  color: white;
+  font-size: 20px;
+  line-height: 120px;
+  font-weight: bold;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.2s ease;
 }
-.card:hover {
-  transform: scale(1.05);
+
+#drawn-card {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #333;
+  background: #fff;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-/* Card highlight for special actions or initial peek */
+
+#log {
+  border: 2px dashed black;
+  padding: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+  background: #fff;
+}
+
+#turn-info {
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Styles supplémentaires pour les cartes et boutons */
+.card-wrapper {
+  display: inline-block;
+  margin: 10px;
+  position: relative;
+}
+
 .card.selectable-start {
   outline: 3px dashed yellow;
 }
+
 .card.highlight {
   outline: 3px solid lime;
   box-shadow: 0 0 10px lime;
 }
-/* Discard pile styling */
-#discard-info {
-  margin: 15px 0;
-}
-#discard-pile {
-  display: inline-block;
-}
-/* Log output styling */
-#log {
-  margin: 20px auto;
-  max-width: 500px;
-  text-align: left;
-  padding: 10px;
-  border: 2px dashed #333;
-  background: rgba(255,255,255,0.8);
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-#log p {
-  margin: 5px 0;
-}
 
-/* Quick discard button above player cards */
 .discard-btn {
   position: absolute;
-  top: -10px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
-  background: #ccc;
-  color: #000;
-  width: 24px;
-  height: 24px;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: crimson;
+  color: white;
   border: none;
-  border-radius: 50%;
-  font-size: 14px;
-  line-height: 22px;
-  padding: 0;
   cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-.discard-btn:hover {
-  background: #aaa;
-}
-.quick-discard-btn {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 14px;
-  background: #ff9800;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-}
-#winner-message {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255,255,255,0.9);
-  border: 2px solid #333;
-  border-radius: 10px;
-  padding: 20px;
+
+/* Mise en forme de l'annonce du gagnant au centre */
+#center-zone h2 {
   font-size: 24px;
-  font-weight: bold;
-  display: none;
-  z-index: 1000;
+  background: #32cd32;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
 }

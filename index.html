@@ -27,7 +27,7 @@
     <h2>Salle d’attente</h2>
     <p>Code de la partie : <strong id="lobby-room"></strong></p>
     <div id="lobby-players">En attente de joueurs...</div>
-    <button id="start-game" style="display:none;">Lancer la partie</button>
+    <button id="btn-launch-setup" style="display:none;">Lancer la partie</button>
   </div>
 
   <!-- Game Setup Screen (for host to configure game) -->
@@ -50,21 +50,17 @@
   <div id="game" style="display:none;">
     <!-- Scoreboard (top-right) -->
     <div id="scoreboard"></div>
-    <!-- Dynamic game area for players' cards -->
-    <div id="game-area"></div>
+    <!-- Dynamic game area for players' cards and central piles -->
+    <div id="game-area">
+      <div id="center-zone"></div>
+      <div id="all-players"></div>
+    </div>
     <!-- Action buttons -->
     <button id="btn-draw-card">Piocher une carte</button>
     <button id="btn-discard-swap">Prendre de la défausse</button>
     <button id="skip-special" style="display:none;">Passer l'action spéciale</button>
     <button id="btn-declare-cactus">Cactus</button>
-    <button id="btn-stop-game">Arrêter la partie</button>
-    <!-- Center info: discard pile, turn indicator, drawn card -->
-    <div id="discard-info">
-      Défausse :
-      <div class="card-wrapper">
-        <div id="discard-pile" class="card"><span id="discard">Vide</span></div>
-      </div>
-    </div>
+    <!-- Turn indicator and drawn card display -->
     <p id="turn-info">Tour du joueur</p>
     <p id="drawn-card" style="display:none; cursor:pointer;">
       Carte piochée : <span id="new-card"></span>
