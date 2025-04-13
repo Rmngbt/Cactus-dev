@@ -111,7 +111,42 @@ button:disabled {
   color: white;
   text-align: center;
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
 }
+.card:hover {
+  transform: scale(1.05);
+}
+/* Card highlight for special actions or initial peek */
+.card.selectable-start {
+  outline: 3px dashed yellow;
+}
+.card.highlight {
+  outline: 3px solid lime;
+  box-shadow: 0 0 10px lime;
+}
+/* Discard pile styling */
+#discard-info {
+  margin: 15px 0;
+}
+#discard-pile {
+  display: inline-block;
+}
+/* Log output styling */
+#log {
+  margin: 20px auto;
+  max-width: 500px;
+  text-align: left;
+  padding: 10px;
+  border: 2px dashed #333;
+  background: rgba(255,255,255,0.8);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+#log p {
+  margin: 5px 0;
+}
+
 /* Quick discard button above player cards */
 .discard-btn {
   position: absolute;
@@ -145,14 +180,6 @@ button:disabled {
   width: 24px;
   height: 24px;
   cursor: pointer;
-}
-/* Card highlight for special actions or initial peek */
-.card.selectable-start {
-  outline: 3px dashed yellow;
-}
-.card.highlight {
-  outline: 3px solid lime;
-  box-shadow: 0 0 10px lime;
 }
 #winner-message {
   position: fixed;
