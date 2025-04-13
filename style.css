@@ -169,7 +169,7 @@ button:disabled {
 }
 .quick-discard-btn {
   position: absolute;
-  top: -10px;
+  top: -20px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 14px;
@@ -194,4 +194,20 @@ button:disabled {
   font-weight: bold;
   display: none;
   z-index: 1000;
+}
+.discard-btn {
+    display: inline-block;
+    vertical-align: middle;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    line-height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: #888;
+    color: #fff;
+    cursor: pointer;
+}
+.discard-btn:hover {
+    background: #aaa;
 }
