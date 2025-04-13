@@ -1,27 +1,104 @@
-/* Assurer la position du scoreboard en haut à droite */
+body {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5dc;
+  color: #333;
+}
+/* Welcome screen with background image */
+#welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-image: url('https://raw.githubusercontent.com/Rmngbt/Cactus-game/main/acceuil.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-shadow: 1px 1px 4px black;
+}
+#welcome input,
+#welcome button {
+  margin: 10px;
+  padding: 12px 20px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+}
+#welcome button {
+  background-color: #32cd32;
+  color: white;
+  cursor: pointer;
+}
+#welcome button:hover {
+  background-color: #28a428;
+}
+/* General buttons */
+button {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  background: #6b8e23;
+  color: white;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Sections spacing */
+#config,
+#lobby,
+#setup,
+#game {
+  margin-top: 30px;
+}
+/* Scoreboard box (top-right corner) */
 #scoreboard {
   position: absolute;
   top: 10px;
   right: 10px;
-  /* ...autres styles éventuels... */
+  background-color: rgba(240,240,240,0.9);
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-
-/* Style de la zone de chaque joueur dans le jeu */
+#scoreboard strong {
+  display: block;
+  margin-bottom: 5px;
+}
+#scoreboard .highlight {
+  font-weight: bold;
+}
+/* Round info text inside scoreboard */
+#scoreboard .round-info {
+  margin-top: 8px;
+  font-weight: bold;
+}
+/* Game area and player hands */
+#game-area {
+  margin-top: 20px;
+}
 .player-area {
   margin: 15px 0;
 }
-/* Style du nom de joueur */
 .player-area h3 {
   margin-bottom: 8px;
 }
-
-/* Style du conteneur de chaque carte */
+/* Card styling */
 .card-wrapper {
   display: inline-block;
   position: relative;
   margin: 5px;
 }
-/* Style d’une carte (face cachée ou visible) */
 .card {
   width: 80px;
   height: 120px;
@@ -34,53 +111,60 @@
   color: white;
   text-align: center;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
 }
-.card:hover {
-  transform: scale(1.05);
+/* Quick discard button above player cards */
+.discard-btn {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ccc;
+  color: #000;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 0;
+  cursor: pointer;
 }
-/* Carte sélectionnable au début (mise en surbrillance jaune pointillée) */
-.card.selectable-start {
-  outline: 3px dashed yellow;
+.discard-btn:hover {
+  background: #aaa;
 }
-/* Carte temporairement révélée (surbrillance verte) */
-.card.highlight {
-  outline: 3px solid lime;
-  box-shadow: 0 0 10px lime;
-}
-
-/* Bouton de défausse rapide (🗑) au-dessus de chaque carte */
 .quick-discard-btn {
   position: absolute;
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
-  height: 24px;
   font-size: 14px;
-  line-height: 22px;
+  background: #ff9800;
+  color: #fff;
   border: none;
   border-radius: 50%;
-  background: #ff9800;  /* Couleur orange pour le distinguer */
-  color: #fff;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
 }
-.quick-discard-btn:hover {
-  background: #e08900;
+/* Card highlight for special actions or initial peek */
+.card.selectable-start {
+  outline: 3px dashed yellow;
 }
-
-/* Style du message central annonçant le gagnant de la manche */
-.winner-message {
-  position: absolute;
+.card.highlight {
+  outline: 3px solid lime;
+  box-shadow: 0 0 10px lime;
+}
+#winner-message {
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #32cd32;
-  color: #fff;
-  padding: 15px 30px;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 20px;
   font-size: 24px;
   font-weight: bold;
-  border-radius: 10px;
-  display: none;  /* masqué par défaut */
+  display: none;
+  z-index: 1000;
 }
