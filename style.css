@@ -88,7 +88,7 @@ button:disabled {
   margin-top: 20px;
 }
 .player-area {
-  margin: 15px 0;
+  margin: 30px 0;
 }
 .player-area h3 {
   margin-bottom: 8px;
@@ -111,65 +111,24 @@ button:disabled {
   color: white;
   text-align: center;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: transform 0.2s ease;
-}
-.card:hover {
-  transform: scale(1.05);
-}
-/* Card highlight for special actions or initial peek */
-.card.selectable-start {
-  outline: 3px dashed yellow;
 }
 .card.highlight {
-  outline: 3px solid lime;
-  box-shadow: 0 0 10px lime;
+  background: #e29c45;
 }
-/* Discard pile styling */
-#discard-info {
-  margin: 15px 0;
+.card.selectable-start {
+  border: 2px dashed #fff;
 }
-#discard-pile {
-  display: inline-block;
+/* Quick peek/selection styling */
+.card.selectable-start:hover {
+  background: #5aace2;
 }
-/* Log output styling */
-#log {
-  margin: 20px auto;
-  max-width: 500px;
-  text-align: left;
-  padding: 10px;
-  border: 2px dashed #333;
-  background: rgba(255,255,255,0.8);
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+.card-wrapper .highlight {
+  background: #e29c45;
 }
-#log p {
-  margin: 5px 0;
-}
-
-/* Quick discard button above player cards */
-.discard-btn {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ccc;
-  color: #000;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  font-size: 14px;
-  line-height: 22px;
-  padding: 0;
-  cursor: pointer;
-}
-.discard-btn:hover {
-  background: #aaa;
-}
+/* Quick discard button (fast discard) */
 .quick-discard-btn {
   position: absolute;
-  top: -20px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 14px;
@@ -181,6 +140,21 @@ button:disabled {
   height: 24px;
   cursor: pointer;
 }
+/* Discard (trash) button style */
+.discard-btn {
+  background: transparent;
+  color: #333;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 0;
+  cursor: pointer;
+}
+.discard-btn:hover {
+  background: #aaa;
+}
+/* Winner message overlay */
 #winner-message {
   position: fixed;
   top: 50%;
@@ -194,20 +168,4 @@ button:disabled {
   font-weight: bold;
   display: none;
   z-index: 1000;
-}
-.discard-btn {
-    display: inline-block;
-    vertical-align: middle;
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-    line-height: 24px;
-    border: none;
-    border-radius: 50%;
-    background: #888;
-    color: #fff;
-    cursor: pointer;
-}
-.discard-btn:hover {
-    background: #aaa;
 }

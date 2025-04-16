@@ -52,11 +52,6 @@
     <div id="scoreboard"></div>
     <!-- Dynamic game area for players' cards -->
     <div id="game-area"></div>
-	<p id="drawn-card" style="display:none; cursor:pointer;">
-  Carte piochée : <span id="new-card"></span>
-  <button id="btn-discard-drawn" class="discard-btn" style="margin-left:5px;">🗑</button>
-</p>
-
     <!-- Action buttons -->
     <button id="btn-draw-card">Piocher une carte</button>
     <button id="btn-discard-swap">Prendre de la défausse</button>
@@ -72,11 +67,12 @@
     </div>
     <p id="turn-info">Tour du joueur</p>
     <p id="drawn-card" style="display:none; cursor:pointer;">
-      Carte piochée : <span id="new-card"></span>
+      Carte piochée : <span id="new-card"></span> <button id="btn-discard-drawn" class="discard-btn">🗑</button>
     </p>
     <!-- New round / reset buttons (host only) -->
     <button id="btn-new-round" style="display:none; margin-top:10px;">Nouvelle manche</button>
     <button id="btn-reset-game" style="display:none; margin-top:10px;">Nouvelle partie</button>
+    <div id="winner-message"></div>
   </div>
 
   <!-- Game log/output -->
