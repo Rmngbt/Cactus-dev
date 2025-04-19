@@ -88,7 +88,7 @@ button:disabled {
   margin-top: 20px;
 }
 .player-area {
-  margin: 30px 0;
+  margin: 15px 0;
 }
 .player-area h3 {
   margin-bottom: 8px;
@@ -111,24 +111,64 @@ button:disabled {
   color: white;
   text-align: center;
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease;
+}
+.card:hover {
+  transform: scale(1.05);
+}
+/* Card highlight for special actions or initial peek */
+.card.selectable-start {
+  outline: 3px dashed yellow;
 }
 .card.highlight {
-  background: #e29c45;
+  outline: 3px solid lime;
+  box-shadow: 0 0 10px lime;
 }
-.card.selectable-start {
-  border: 2px dashed #fff;
+/* Discard pile styling */
+#discard-info {
+  margin: 15px 0;
 }
-/* Quick peek/selection styling */
-.card.selectable-start:hover {
-  background: #5aace2;
+#discard-pile {
+  display: inline-block;
 }
-.card-wrapper .highlight {
-  background: #e29c45;
+/* Log output styling */
+#log {
+  margin: 20px auto;
+  max-width: 500px;
+  text-align: left;
+  padding: 10px;
+  border: 2px dashed #333;
+  background: rgba(255,255,255,0.8);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-/* Quick discard button (fast discard) */
+#log p {
+  margin: 5px 0;
+}
+/* Quick discard button above player cards */
+.discard-btn {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ccc;
+  color: #000;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 22px;
+  padding: 0;
+  cursor: pointer;
+}
+.discard-btn:hover {
+  background: #aaa;
+}
 .quick-discard-btn {
   position: absolute;
-  top: -25px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 14px;
@@ -140,19 +180,15 @@ button:disabled {
   height: 24px;
   cursor: pointer;
 }
-/* Discard (trash) button style */
-.discard-btn {
-  background: transparent;
-  color: #333;
-  border: none;
-  border-radius: 50%;
-  font-size: 14px;
-  line-height: 22px;
-  padding: 0;
-  cursor: pointer;
+/* Drawn card display */
+#drawn-card {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
 }
-.discard-btn:hover {
-  background: #aaa;
+#drawn-card .card {
+  cursor: default;
 }
 /* Winner message overlay */
 #winner-message {

@@ -44,7 +44,7 @@ let pendingSpecial = null;
 let selectedForSwap = null;        // Utilisé pour l'effet du Valet (échange)
 let cactusDeclared = false;
 let cactusPlayerIndex = null;
-let lastWinnerWatcherActive = false;  // Indicateur pour attacher une seule fois le watcher du vainqueur
+let pendingGiveTarget = null;      // Joueur cible d'une carte à donner après défausse rapide réussie
 
 /**
  * Lancement d'une nouvelle manche (fonctionnalité initialement prévue, non utilisée directement 
@@ -75,7 +75,7 @@ function startNewGame(host = false) {
       currentPlayer: allPlayers[0],
       hands: {},
       discardPile: [],
-      revealed: {}
+      revealed: {},
     };
 
     allPlayers.forEach((p) => {
@@ -88,6 +88,7 @@ function startNewGame(host = false) {
 
     // Écrire l'état de jeu initial dans Firebase -> lance la manche pour tout le monde
     update(gameRef, { gameState });
+
     logAction(`🆕 Nouvelle manche lancée par ${username}`);
   }
 }
@@ -171,6 +172,25 @@ function onCardClick(event) {
   const name = playersByIndex[player];
   const handArray = playersData[name]?.hand;
   if (!handArray) return;
+
+  // If a quick discard on opponent succeeded, allow player to give one of their cards
+  if (pendingGiveTarget && player === playerIndex) {
+    const oppName = pendingGiveTarget;
+    const myName = username;
+    const myHand = [...playersData[myName].hand];
+    const cardToGive = myHand[index];
+    if (cardToGive === undefined) return;
+    myHand.splice(index, 1);
+    const oppHand = [...(playersData[oppName]?.hand || [])];
+    oppHand.push(cardToGive);
+    const updates = {};
+    updates[`games/${roomId}/players/${myName}/hand`] = myHand;
+    updates[`games/${roomId}/players/${oppName}/hand`] = oppHand;
+    update(ref(db), updates);
+    logAction(`🔁 Vous donnez votre carte ${cardToGive} à ${oppName}.`);
+    pendingGiveTarget = null;
+    return;
+  }
 
   // Special action in progress (8 = peek own card, 10 = peek opponent's card, V = swap card)
   if (specialAction && pendingSpecial === 8 && player === currentPlayerIndex) {
@@ -291,17 +311,15 @@ function handleSpecialCard(card) {
   return false;
 }
 
-// End the current player's turn and move to the next player (enforces final round if Cactus)
+// End the current player's turn and move to the next player (unless Cactus triggers end)
 function endTurnProcedure() {
   if (specialAction) return;
-  const nextIndex = currentPlayerIndex ? (currentPlayerIndex % playerCount) + 1 : 1;
-  if (cactusDeclared && nextIndex === cactusPlayerIndex) {
-    // Fin de manche : le tour allait revenir au joueur ayant dit Cactus
-    set(ref(db, `games/${roomId}/currentPlayer`), null);
-    set(ref(db, `games/${roomId}/roundComplete`), true);
+  if (cactusDeclared && currentPlayerIndex !== cactusPlayerIndex) {
+    // Cactus déclaré : ne pas avancer le tour pour les autres (la manche va se terminer)
     return;
   }
-  // Passer au joueur suivant
+  // Determine next player's index in rotation
+  const nextIndex = currentPlayerIndex ? (currentPlayerIndex % playerCount) + 1 : 1;
   set(ref(db, `games/${roomId}/currentPlayer`), nextIndex);
 }
 
@@ -338,25 +356,9 @@ function attemptQuickDiscard(targetPlayerIndex, cardIdx) {
     logAction(`🗑 Défausse rapide réussie : carte ${cardValue} défaussée` + 
               `${targetName === username ? "" : " depuis la main de " + targetName} !`);
     if (targetPlayerIndex !== playerIndex) {
-      // If discarding from an opponent's hand, give them one card from my hand as penalty
-      const myName = username;
-      const myHand = [...playersData[myName].hand];
-      if (myHand.length > 0) {
-        // Choose highest value card from my hand to give to opponent
-        let maxIndex = 0;
-        let maxVal = -Infinity;
-        for (let i = 0; i < myHand.length; i++) {
-          const val = getCardValue(myHand[i]);
-          if (val > maxVal) {
-            maxVal = val;
-            maxIndex = i;
-          }
-        }
-        const cardToGive = myHand.splice(maxIndex, 1)[0];
-        updates[`games/${roomId}/players/${targetName}/hand`] = [...targetHand, cardToGive];
-        updates[`games/${roomId}/players/${myName}/hand`] = myHand;
-        logAction(`🔁 Vous donnez votre carte ${cardToGive} à ${targetName}.`);
-      }
+      // If discarding from an opponent's hand, allow the player to choose a card to give
+      pendingGiveTarget = targetName;
+      logAction("👉 Sélectionnez une de vos cartes à donner à " + targetName + ".");
     }
     update(ref(db), updates);
   } else {
@@ -383,7 +385,7 @@ function drawCard() {
   const pool = ["R","A",2,3,4,5,6,7,8,9,10,"V","D"];
   drawnCard = pool[Math.floor(Math.random() * pool.length)];
   logAction("🃏 Carte piochée : " + drawnCard);
-  // Show drawn card to this player (in UI)
+  // Show drawn card to this player (UI)
   document.getElementById("new-card").innerText = drawnCard;
   document.getElementById("drawn-card").style.display = "block";
 }
@@ -434,7 +436,7 @@ function declareCactus() {
   updates[`games/${roomId}/cactusDeclared`] = true;
   updates[`games/${roomId}/cactusPlayerIndex`] = currentPlayerIndex;
   update(ref(db), updates).then(() => {
-    endTurnProcedure();  // Passer au joueur suivant (les derniers tours s'enchaînent)
+    endTurnProcedure();  // Passer au joueur suivant (déclenchera le calcul final chez l'hôte)
   });
 }
 
@@ -466,10 +468,13 @@ function revealFinalScores() {
       }
     }
   }
-  if (!success) {
-    logAction("❌ Aucun joueur n’a réussi le Cactus.");
-  } else if (!winnerName) {
-    logAction("🤝 Égalité ! Pas de gagnant pour cette manche.");
+  if (!success || !winnerName) {
+    if (!success) {
+      logAction("❌ Aucun joueur n’a réussi le Cactus.");
+    } else {
+      logAction("🤝 Égalité ! Pas de gagnant pour cette manche.");
+    }
+    set(ref(db, `games/${roomId}/lastWinner`), null);
   } else {
     logAction("🏆 " + winnerName + " remporte la manche !");
     set(ref(db, `games/${roomId}/lastWinner`), winnerName);
@@ -485,11 +490,12 @@ function revealFinalScores() {
   if (isHost) {
     cactusDeclared = false;
     cactusPlayerIndex = null;
-    document.getElementById("btn-new-round").style.display = "inline-block";
+    if (document.getElementById("btn-reset-game").style.display !== "inline-block") {
+      document.getElementById("btn-new-round").style.display = "inline-block";
+    }
   }
 }
 
-// Watch for changes in last round winner to display center message
 function watchLastWinner() {
   const winnerRef = ref(db, `games/${roomId}/lastWinner`);
   onValue(winnerRef, (snapshot) => {
@@ -571,6 +577,10 @@ function watchTurn() {
     document.getElementById("btn-declare-cactus").disabled = !isMyTurn;
     // Log turn change
     logAction("🔄 Tour du joueur " + turn);
+    // If Cactus was declared and now it's a different player's turn, host triggers final scoring
+    if (cactusDeclared && turn !== cactusPlayerIndex && isHost) {
+      revealFinalScores();
+    }
   });
 }
 
@@ -602,7 +612,7 @@ function watchPlayers() {
       if (listElem) {
         const names = Object.keys(data);
         if (names.length > 0) {
-          listElem.innerHTML = "<ul>" + names.map(n =>
+          listElem.innerHTML = "<ul>" + names.map(n => 
             `<li>${n}${data[n].index === 1 ? " (hôte)" : ""}</li>`).join("") + "</ul>";
         }
       }
@@ -644,6 +654,8 @@ function watchGameState() {
     gameState = data;
     players = Object.keys(data.players || {});
     playersData = data.players || playersData;
+    // (Le champ currentTurn n'existe pas, on n'utilise plus currentPlayer globalement)
+    // currentPlayer = data.currentTurn;  // supprimé car inutile/inexistant
     currentDiscard = data.discard ?? currentDiscard;
     // Actualiser config si disponible
     if (data.config) {
@@ -656,22 +668,11 @@ function watchGameState() {
       startVisibleCount = data.visibleCount ?? startVisibleCount;
       targetScore = data.targetScore ?? targetScore;
     }
-    let newRoundComplete = data.roundComplete ?? false;
-    if (newRoundComplete && !roundComplete && isHost) {
-      revealFinalScores();
-    }
-    roundComplete = newRoundComplete;
+    roundComplete = data.roundComplete ?? roundComplete;
     currentRound = data.round ?? currentRound;
     if (data.cactusDeclared !== undefined) {
-      let wasCactus = cactusDeclared;
       cactusDeclared = data.cactusDeclared;
       cactusPlayerIndex = data.cactusPlayerIndex ?? cactusPlayerIndex;
-      if (cactusDeclared && !wasCactus) {
-        // Annonce Cactus pour tous les joueurs
-        if (cactusPlayerIndex !== playerIndex) {
-          logAction("🌵 Joueur " + cactusPlayerIndex + " dit Cactus !");
-        }
-      }
     }
 
     // Affichage des vues en fonction de l'état du jeu (state)
@@ -708,10 +709,11 @@ function watchGameState() {
       }
 
       logAction("🎮 La partie commence !");
-      if (!lastWinnerWatcherActive) {
-        watchLastWinner();
-        lastWinnerWatcherActive = true;
-      }
+    }
+
+    // Si un Cactus a été déclaré, l'hôte lance le décompte final (sécurité supplémentaire)
+    if (cactusDeclared && state === "playing" && isHost) {
+      revealFinalScores();
     }
   });
 }
@@ -805,6 +807,7 @@ async function createRoom() {
   // Start watching players and game state
   watchPlayers();
   watchGameState();
+  watchLastWinner();
 }
 
 async function joinRoom() {
@@ -841,6 +844,7 @@ async function joinRoom() {
   // Start watchers
   watchPlayers();
   watchGameState();
+  watchLastWinner();
 }
 
 function launchSetup() {
@@ -890,21 +894,17 @@ function startGame() {
 function startNewRound() {
   if (!isHost) return;
   currentRound += 1;
-  // Préparer les mises à jour de la nouvelle manche
-  const updates = {};
-  updates[`games/${roomId}/lastWinner`] = null;
-  updates[`games/${roomId}/cactusDeclared`] = false;
-  updates[`games/${roomId}/cactusPlayerIndex`] = null;
-  updates[`games/${roomId}/roundComplete`] = false;
-  // Réinitialiser les flags de manche (côté client)
+  // Reset round-specific flags
   cactusDeclared = false;
   cactusPlayerIndex = null;
   specialAction = false;
   pendingSpecial = null;
   selectedForSwap = null;
   drawnCard = null;
-  // Distribuer de nouvelles mains pour chaque joueur
+  // Deal new hands for a new round
   const deckValues = ["R","A",2,3,4,5,6,7,8,9,10,"V","D"];
+  const updates = {};
+  updates[`games/${roomId}/lastWinner`] = null;
   for (let name in playersData) {
     const newHand = [];
     for (let i = 0; i < cardCount; i++) {
@@ -931,11 +931,7 @@ document.getElementById("btn-start-game").addEventListener("click", startGame);
 document.getElementById("btn-draw-card").addEventListener("click", drawCard);
 document.getElementById("btn-discard-swap").addEventListener("click", takeDiscard);
 document.getElementById("skip-special").addEventListener("click", skipSpecial);
-document.getElementById("drawn-card").addEventListener("click", discardDrawnCard);
-document.getElementById("btn-discard-drawn").addEventListener("click", (e) => {
-  e.stopPropagation();
-  discardDrawnCard();
-});
+document.getElementById("btn-discard-drawn").addEventListener("click", discardDrawnCard);
 document.getElementById("btn-declare-cactus").addEventListener("click", declareCactus);
 document.getElementById("btn-new-round").addEventListener("click", startNewRound);
 document.getElementById("btn-reset-game").addEventListener("click", resetGame);
@@ -959,6 +955,7 @@ window.addEventListener("load", () => {
     // Restart watchers (they will update UI accordingly based on current game state)
     watchPlayers();
     watchGameState();
+    watchLastWinner();
   }
 });
 
